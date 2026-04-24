@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -17,7 +17,13 @@ const DriverSignup = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signupDriver } = useAuth();
+  const { signupDriver, currentUser, userData } = useAuth();
+
+  useEffect(() => {
+    if (currentUser && userData?.role === 'driver') {
+      navigate('/driver-dashboard', { replace: true });
+    }
+  }, [currentUser, navigate, userData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -44,7 +50,6 @@ const DriverSignup = () => {
       };
 
       await signupDriver(formData.email, formData.password, driverData);
-      navigate('/driver-dashboard');
     } catch (err) {
       console.error(err);
       setError('Failed to create driver account. ' + err.message);

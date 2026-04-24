@@ -49,6 +49,26 @@ const Navbar = () => {
               Destinations
             </Link>
           </li>
+          <li className="nav-item">
+            <Link to="/pricing" className="nav-links" onClick={toggleMenu}>
+              Pricing
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/contact" className="nav-links" onClick={toggleMenu}>
+              Contact
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/blogs" className="nav-links" onClick={toggleMenu}>
+              Blogs
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/announcements" className="nav-links" onClick={toggleMenu}>
+              Announcements
+            </Link>
+          </li>
           
           {currentUser ? (
             <>
@@ -59,6 +79,20 @@ const Navbar = () => {
                   </Link>
                 </li>
               )}
+              {userData?.role === 'super_admin' && (
+                <li className="nav-item">
+                  <Link to="/admin/dashboard" className="nav-links" onClick={toggleMenu}>
+                    Admin Dashboard
+                  </Link>
+                </li>
+              )}
+              {userData?.role === 'admin' && (
+                <li className="nav-item">
+                  <Link to="/admin/panel" className="nav-links" onClick={toggleMenu}>
+                    Admin Panel
+                  </Link>
+                </li>
+              )}
               <li className="nav-item" style={{ display: 'flex', alignItems: 'center', marginLeft: '1rem' }}>
                 <button onClick={() => { handleLogout(); toggleMenu(); }} className="btn-secondary nav-btn" style={{ padding: '0.5rem 1rem' }}>
                   Logout
@@ -66,11 +100,13 @@ const Navbar = () => {
               </li>
             </>
           ) : (
-            <li className="nav-item">
-              <Link to="/login" className="btn-primary nav-btn" onClick={toggleMenu}>
-                Book now / Login
-              </Link>
-            </li>
+            <>
+              <li className="nav-item">
+                <Link to="/login" className="btn-primary nav-btn" onClick={toggleMenu}>
+                  Login
+                </Link>
+              </li>
+            </>
           )}
         </ul>
       </div>

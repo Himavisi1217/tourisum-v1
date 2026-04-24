@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAppData } from '../../context/AppDataContext';
 
 const ScheduleCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  // Mock data for trips
-  const trips = [
-    { date: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1).toISOString().split('T')[0], title: 'Airport Transfer', type: 'pickup', time: '14:30' },
-    { date: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 3).toISOString().split('T')[0], title: 'Sigiriya Day Tour', type: 'tour', time: '07:00' },
-    { date: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 5).toISOString().split('T')[0], title: 'Galle Drop-off', type: 'dropoff', time: '10:00' },
-  ];
+  const { driverTrips } = useAppData();
+  const trips = driverTrips.map((trip) => ({
+    date: trip.date,
+    title: trip.stops.map((stop) => stop.name).join(' -> '),
+    type: trip.status,
+    time: trip.pickupTime
+  }));
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();

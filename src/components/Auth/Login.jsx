@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -9,7 +9,26 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, currentUser, userData } = useAuth();
+
+  useEffect(() => {
+    if (!currentUser || !userData) {
+      return;
+    }
+    if (userData.role === 'driver') {
+      navigate('/driver-dashboard', { replace: true });
+      return;
+    }
+    if (userData.role === 'super_admin') {
+      navigate('/admin/dashboard', { replace: true });
+      return;
+    }
+    if (userData.role === 'admin') {
+      navigate('/admin/panel', { replace: true });
+      return;
+    }
+    navigate('/', { replace: true });
+  }, [currentUser, navigate, userData]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,10 +37,6 @@ const Login = () => {
       setError('');
       setLoading(true);
       await login(email, password);
-      // Wait a tiny bit for the context to fetch user data
-      setTimeout(() => {
-        navigate('/'); // Will redirect correctly in App.jsx based on role later, for now just go home or dashboard
-      }, 500);
     } catch (err) {
       console.error(err);
       setError('Failed to log in. Please check your credentials.');

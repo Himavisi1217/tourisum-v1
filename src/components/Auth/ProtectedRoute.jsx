@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const ProtectedRoute = ({ children, requiredRole }) => {
+const ProtectedRoute = ({ children, requiredRole, redirectTo = '/' }) => {
   const { currentUser, userData, loading } = useAuth();
 
   if (loading) {
@@ -10,19 +10,16 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   }
   
   if (!currentUser) {
-    // User not logged in, redirect to login
-    return <Navigate to="/login" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
-  // If a specific role is required, check it
-  if (requiredRole && userData) {
-    if (userData.role !== requiredRole) {
-      // User does not have permission, redirect to home
-      return <Navigate to="/" replace />;
+  if (requiredRole) {
+    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!userData || !allowedRoles.includes(userData.role)) {
+      return <Navigate to={redirectTo} replace />;
     }
   }
 
-  // If user is logged in and role matches (or no role required), render component
   return children;
 };
 

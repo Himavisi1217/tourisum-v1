@@ -1,9 +1,15 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, Star, ShieldCheck, Clock, ThumbsUp } from 'lucide-react';
 import './Home.css';
+import { useAppData } from '../../context/AppDataContext';
 
 const Home = () => {
+  const { announcements, blogs } = useAppData();
+  const featuredAnnouncement = announcements[0];
+  const latestBlogs = blogs.slice(0, 3);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -59,6 +65,22 @@ const Home = () => {
         </div>
       </section>
 
+      {featuredAnnouncement ? (
+        <section className="section" style={{ paddingBottom: '1rem' }}>
+          <div className="container">
+            <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
+              {featuredAnnouncement.imageUrl ? (
+                <img src={featuredAnnouncement.imageUrl} alt={featuredAnnouncement.title} style={{ width: '100%', maxHeight: '260px', objectFit: 'cover' }} />
+              ) : null}
+              <div style={{ padding: '1.5rem' }}>
+                <h3>{featuredAnnouncement.title}</h3>
+                <p style={{ color: 'var(--color-muted)' }}>{featuredAnnouncement.message}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* Booking Widget */}
       <section className="booking-widget-section">
         <div className="container">
@@ -92,6 +114,30 @@ const Home = () => {
               </div>
             </form>
           </motion.div>
+        </div>
+      </section>
+
+      <section className="section" style={{ backgroundColor: 'var(--color-white)' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h2>Latest Blogs</h2>
+          </div>
+          <div className="grid-3">
+            {latestBlogs.map((blog) => (
+              <article key={blog.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                {blog.coverImageUrl ? (
+                  <img src={blog.coverImageUrl} alt={blog.title} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                ) : null}
+                <div style={{ padding: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.1rem' }}>{blog.title}</h3>
+                  <p style={{ color: 'var(--color-muted)' }}>{blog.excerpt}</p>
+                  <Link to={`/blogs/${blog.id}`} className="btn-secondary" style={{ display: 'inline-block', marginTop: '1rem' }}>
+                    Read More
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -226,45 +272,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ backgroundColor: 'var(--color-darkest)', color: 'var(--color-light-medium)', padding: '4rem 0 2rem 0' }}>
-        <div className="container">
-          <div className="grid-4" style={{ marginBottom: '3rem', borderBottom: '1px solid var(--color-dark)', paddingBottom: '3rem' }}>
-            <div>
-              <h3 style={{ color: 'var(--color-cream)', marginBottom: '1.5rem' }}>Company</h3>
-              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <li><a href="#">About us</a></li>
-                <li><a href="#">Careers</a></li>
-                <li><a href="#">Blog</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 style={{ color: 'var(--color-cream)', marginBottom: '1.5rem' }}>Services</h3>
-              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <li><a href="#">Vehicle rental</a></li>
-                <li><a href="#">Driver service</a></li>
-                <li><a href="#">Airport transfer</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 style={{ color: 'var(--color-cream)', marginBottom: '1.5rem' }}>Support</h3>
-              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <li><a href="#">Help center</a></li>
-                <li><a href="#">Contact us</a></li>
-                <li><a href="#">Privacy policy</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 style={{ color: 'var(--color-cream)', marginBottom: '1.5rem' }}>Contact</h3>
-              <p style={{ marginBottom: '0.5rem' }}>+94 70 123 4567</p>
-              <p>support@srilankatravels.com</p>
-            </div>
-          </div>
-          <div style={{ textAlign: 'center', fontSize: '0.85rem' }}>
-            <p>© 2026 Sri Lanka Travels. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
