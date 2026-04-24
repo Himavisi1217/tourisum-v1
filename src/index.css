@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Charcoal Greys */
+  --color-darkest: #2C2C2A;
+  --color-dark: #444441;
+  --color-medium: #5F5E5A;
+  --color-muted: #888780;
+  --color-light-medium: #B4B2A9;
+  --color-light: #D3D1C7;
+  --color-very-light: #E8E6E0;
+  --color-cream: #F8F7F4;
+  --color-white: #FFFFFF;
+
+  /* Component Colors */
+  --color-primary-button: #5F5E5A;
+  --color-primary-button-text: #F8F7F4;
+  --color-secondary-button: #FFFFFF;
+  --color-secondary-button-text: #5F5E5A;
+  --color-input-bg: #FFFFFF;
+  --color-input-border: #D3D1C7;
+  --color-input-text: #2C2C2A;
+  --color-heading: #2C2C2A;
+  --color-body-text: #5F5E5A;
+  --color-secondary-text: #888780;
+  --color-header-bg: #2C2C2A;
+  --color-footer-bg: #2C2C2A;
+  --color-card-bg: #FFFFFF;
+  --color-card-border: #D3D1C7;
+  --color-section-light-bg: #F8F7F4;
+  --color-section-dark-bg: #444441;
+
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-cream);
+  color: var(--color-body-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-heading);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background-color: var(--color-primary-button);
+  color: var(--color-primary-button-text);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-md);
+  font-weight: 500;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-dark);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary-button);
+  color: var(--color-secondary-button-text);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-input-border);
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-cream);
+  border-color: var(--color-medium);
+  transform: translateY(-2px);
+}
+
+/* Forms */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-medium);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid var(--color-input-border);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  font-family: inherit;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-medium);
+  box-shadow: 0 0 0 3px var(--color-very-light);
+}
+
+input::placeholder {
+  color: var(--color-muted);
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.section {
+  padding: 4rem 0;
+}
+
+.section-light {
+  background-color: var(--color-section-light-bg);
+}
+
+.section-dark {
+  background-color: var(--color-section-dark-bg);
+  color: var(--color-cream);
+}
+
+.section-dark h1, .section-dark h2, .section-dark h3 {
+  color: var(--color-cream);
+}
+
+/* Cards */
+.card {
+  background-color: var(--color-card-bg);
+  border: 0.5px solid var(--color-card-border);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
