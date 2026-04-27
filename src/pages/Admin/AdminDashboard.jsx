@@ -3,7 +3,7 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useAppData } from '../../context/AppDataContext';
 import { useAuth } from '../../context/AuthContext';
 
-const TINYMCE_API_KEY = 'vv5oujdq57rgayml40szit35kn2lsjdzj57a4bhf0yevhnq0';
+const TINYMCE_API_KEY = import.meta.env.VITE_TINYMCE_API_KEY;
 
 const initialAnnouncement = {
   title: '',
