@@ -1,0 +1,29 @@
+.services-page {
+  max-width: 860px;
+}
+
+.services-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.services-form .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.services-form .checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.services-form .checkbox-row input {
+  width: auto;
+}
+
+.services-note {
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}

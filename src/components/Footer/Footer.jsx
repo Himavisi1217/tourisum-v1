@@ -10,7 +10,6 @@ const Footer = () => {
             <h3 style={{ color: 'var(--color-cream)', marginBottom: '1.5rem' }}>Company</h3>
             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <li><a href="#">About us</a></li>
-              <li><a href="#">Careers</a></li>
               <li><Link to="/blogs">Blog</Link></li>
             </ul>
           </div>

@@ -17,12 +17,17 @@ import ContactPage from './pages/Contact/ContactPage';
 import AnnouncementsPage from './pages/Announcements/AnnouncementsPage';
 import BlogsPage from './pages/Blog/BlogsPage';
 import BlogDetails from './pages/Blog/BlogDetails';
+import BookJourneyPage from './pages/Services/BookJourneyPage';
+import RentDriverWithVehiclePage from './pages/Services/RentDriverWithVehiclePage';
+import BookNowPage from './pages/Booking/BookNowPage';
+import AboutPage from './pages/About/AboutPage';
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminSignup from './pages/Admin/AdminSignup';
 import AdminPanel from './pages/Admin/AdminPanel';
 import { Navigate } from 'react-router-dom';
 import Footer from './components/Footer/Footer';
+import DestinationDetailsPage from './pages/Destinations/DestinationDetailsPage';
 
 function App() {
   return (
@@ -37,9 +42,21 @@ function App() {
             <Route path="/driver-signup" element={<DriverSignup />} />
             <Route path="/vehicles" element={<VehiclesPage />} />
             <Route path="/destinations" element={<DestinationsPage />} />
+            <Route path="/destinations/:id" element={<DestinationDetailsPage />} />
+            <Route path="/book-journey" element={<BookJourneyPage />} />
+            <Route path="/rent-driver-with-vehicle" element={<RentDriverWithVehiclePage />} />
+            <Route path="/book-now" element={<BookNowPage />} />
+            <Route path="/about-us" element={<AboutPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/announcements" element={<AnnouncementsPage />} />
+            <Route
+              path="/announcements"
+              element={
+                <ProtectedRoute requiredRole={['admin', 'super_admin']}>
+                  <AnnouncementsPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/blogs" element={<BlogsPage />} />
             <Route path="/blogs/:id" element={<BlogDetails />} />
             <Route path="/portal-admin/login" element={<AdminLogin />} />
@@ -57,7 +74,7 @@ function App() {
             <Route
               path="/admin/dashboard"
               element={
-                <ProtectedRoute requiredRole="super_admin" redirectTo="/portal-admin/login">
+                <ProtectedRoute requiredRole={['admin', 'super_admin']} redirectTo="/portal-admin/login">
                   <AdminDashboard />
                 </ProtectedRoute>
               }

@@ -1,6 +1,12 @@
 import React from 'react';
 import { useAppData } from '../../context/AppDataContext';
 
+const labelByType = {
+  banner: 'Banner',
+  popup: 'Popup Message',
+  notice: 'Notice'
+};
+
 const AnnouncementsPage = () => {
   const { announcements } = useAppData();
 
@@ -13,6 +19,19 @@ const AnnouncementsPage = () => {
       <div style={{ display: 'grid', gap: '1rem' }}>
         {announcements.map((announcement) => (
           <article key={announcement.id} className="card">
+            <p
+              style={{
+                display: 'inline-block',
+                backgroundColor: 'var(--color-very-light)',
+                color: 'var(--color-dark)',
+                borderRadius: '999px',
+                padding: '0.2rem 0.7rem',
+                fontSize: '0.8rem',
+                marginBottom: '0.7rem'
+              }}
+            >
+              {labelByType[announcement.type] || 'Announcement'}
+            </p>
             {announcement.imageUrl ? (
               <img
                 src={announcement.imageUrl}

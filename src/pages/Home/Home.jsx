@@ -7,8 +7,16 @@ import { useAppData } from '../../context/AppDataContext';
 
 const Home = () => {
   const { announcements, blogs } = useAppData();
-  const featuredAnnouncement = announcements[0];
-  const latestBlogs = blogs.slice(0, 3);
+  const latestBlogs = blogs.slice(0, 6);
+  const bannerAnnouncements = announcements.filter((announcement) => announcement.type !== 'popup');
+  const popupAnnouncements = announcements.filter((announcement) => announcement.type === 'popup');
+  const [quickPickup, setQuickPickup] = React.useState('Colombo Airport (BIA)');
+  const [customQuickPickup, setCustomQuickPickup] = React.useState('');
+  const [dismissedPopupIds, setDismissedPopupIds] = React.useState([]);
+
+  const activePopupAnnouncement = popupAnnouncements.find(
+    (announcement) => !dismissedPopupIds.includes(announcement.id)
+  );
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -57,25 +65,58 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
             >
-              <button className="btn-primary" style={{ marginTop: '2.5rem', padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
+              <Link to="/book-now" className="btn-primary" style={{ marginTop: '2.5rem', padding: '1rem 2.5rem', fontSize: '1.1rem', display: 'inline-block' }}>
                 Start Booking
-              </button>
+              </Link>
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {featuredAnnouncement ? (
+      {activePopupAnnouncement ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 1300,
+            padding: '1rem'
+          }}
+        >
+          <div className="card" style={{ width: 'min(560px, 100%)' }}>
+            <h3>{activePopupAnnouncement.title}</h3>
+            <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>{activePopupAnnouncement.message}</p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() =>
+                setDismissedPopupIds((previous) => [...previous, activePopupAnnouncement.id])
+              }
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {bannerAnnouncements.length > 0 ? (
         <section className="section" style={{ paddingBottom: '1rem' }}>
           <div className="container">
-            <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
-              {featuredAnnouncement.imageUrl ? (
-                <img src={featuredAnnouncement.imageUrl} alt={featuredAnnouncement.title} style={{ width: '100%', maxHeight: '260px', objectFit: 'cover' }} />
-              ) : null}
-              <div style={{ padding: '1.5rem' }}>
-                <h3>{featuredAnnouncement.title}</h3>
-                <p style={{ color: 'var(--color-muted)' }}>{featuredAnnouncement.message}</p>
-              </div>
+            <h2 style={{ marginBottom: '1rem' }}>Latest Announcements</h2>
+            <div className="grid-3">
+              {bannerAnnouncements.map((announcement) => (
+                <article key={announcement.id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
+                  {announcement.imageUrl ? (
+                    <img src={announcement.imageUrl} alt={announcement.title} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                  ) : null}
+                  <div style={{ padding: '1.1rem' }}>
+                    <h3 style={{ fontSize: '1.05rem' }}>{announcement.title}</h3>
+                    <p style={{ color: 'var(--color-muted)' }}>{announcement.message}</p>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         </section>
@@ -102,13 +143,27 @@ const Home = () => {
               </div>
               <div className="form-group">
                 <label><MapPin size={16} style={{ display: 'inline', marginRight: '5px', verticalAlign: 'text-bottom' }}/> Pickup location</label>
-                <select>
+                <select value={quickPickup} onChange={(event) => setQuickPickup(event.target.value)}>
                   <option>Colombo Airport (BIA)</option>
                   <option>Colombo City</option>
                   <option>Kandy</option>
                   <option>Galle</option>
+                  <option>Ella</option>
+                  <option value="Custom Location">Custom Location</option>
                 </select>
               </div>
+              {quickPickup === 'Custom Location' ? (
+                <div className="form-group">
+                  <label>Custom pickup location</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your pickup point"
+                    value={customQuickPickup}
+                    onChange={(event) => setCustomQuickPickup(event.target.value)}
+                    required
+                  />
+                </div>
+              ) : null}
               <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
                 <button type="submit" className="btn-primary" style={{ width: '100%', height: '48px' }}>Search</button>
               </div>
@@ -137,6 +192,11 @@ const Home = () => {
                 </div>
               </article>
             ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '1.2rem' }}>
+            <Link to="/blogs" className="btn-primary">
+              View all blogs
+            </Link>
           </div>
         </div>
       </section>
@@ -265,9 +325,9 @@ const Home = () => {
           >
             <h2 style={{ marginBottom: '1.5rem' }}>Ready to explore Sri Lanka?</h2>
             <p style={{ color: 'var(--color-light)', marginBottom: '3rem', fontSize: '1.2rem' }}>Book your journey today and experience the island like never before.</p>
-            <button className="btn-secondary" style={{ backgroundColor: 'var(--color-very-light)', color: 'var(--color-darkest)', border: 'none', padding: '1rem 3rem', fontSize: '1.1rem' }}>
+            <Link to="/book-now" className="btn-secondary" style={{ backgroundColor: 'var(--color-very-light)', color: 'var(--color-darkest)', border: 'none', padding: '1rem 3rem', fontSize: '1.1rem', display: 'inline-block' }}>
               Book your trip
-            </button>
+            </Link>
           </motion.div>
         </div>
       </section>

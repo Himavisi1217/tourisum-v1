@@ -9,10 +9,22 @@ import {
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
-const SUPER_ADMIN_FALLBACK_EMAIL = 'superadmin1@tourisum.app';
+const SUPER_ADMIN_EMAILS = [
+  'superadmin1@tourisum.app',
+  'ekanyake17@gmail.com',
+  'admin1217@-su'
+];
 
 export function useAuth() {
   return useContext(AuthContext);
+}
+
+function isSuperAdminEmail(email) {
+  if (!email) {
+    return false;
+  }
+
+  return SUPER_ADMIN_EMAILS.includes(String(email).trim().toLowerCase());
 }
 
 function normalizeRole(roleValue) {
@@ -124,10 +136,10 @@ export function AuthProvider({ children }) {
             const data = userDoc.data();
             setUserData({
               ...data,
-              role: normalizeRole(data.role)
+              role: isSuperAdminEmail(user.email) ? 'super_admin' : normalizeRole(data.role)
             });
           } else {
-            if (user.email === SUPER_ADMIN_FALLBACK_EMAIL) {
+            if (isSuperAdminEmail(user.email)) {
               setUserData({
                 name: 'superadmin1',
                 email: user.email,
@@ -139,7 +151,7 @@ export function AuthProvider({ children }) {
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
-          if (user.email === SUPER_ADMIN_FALLBACK_EMAIL) {
+          if (isSuperAdminEmail(user.email)) {
             setUserData({
               name: 'superadmin1',
               email: user.email,

@@ -20,7 +20,7 @@ const AdminLogin = () => {
       return;
     }
     if (userData.role === 'admin') {
-      navigate('/admin/panel', { replace: true });
+      navigate('/admin/dashboard', { replace: true });
       return;
     }
     logout();

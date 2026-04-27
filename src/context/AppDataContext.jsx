@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
+import { destinations as fallbackDestinations } from '../data/destinationsData';
 
 const AppDataContext = createContext();
 
@@ -22,6 +23,7 @@ const fallbackAnnouncements = [
     id: 'a1',
     title: 'Welcome to Sri Lanka Travels',
     message: 'Book trusted drivers and premium vehicles for your island trip.',
+    type: 'banner',
     imageUrl: 'https://images.unsplash.com/photo-1541410965313-d53b3c16ef17?auto=format&fit=crop&w=1200&q=80',
     createdAt: new Date().toISOString()
   }
@@ -32,6 +34,7 @@ const fallbackBlogs = [
     id: 'b1',
     title: 'Top 5 Scenic Drives in Sri Lanka',
     excerpt: 'From Ella to Nuwara Eliya, discover unforgettable mountain roads.',
+    type: 'travel_guide',
     content: '<p>Use the admin panel to add rich blog content with TinyMCE.</p>',
     coverImageUrl: 'https://images.unsplash.com/photo-1571244277491-0aebd73d8d2d?auto=format&fit=crop&w=1200&q=80',
     createdAt: new Date().toISOString()
@@ -62,6 +65,7 @@ export function AppDataProvider({ children }) {
   const { currentUser, userData } = useAuth();
   const [announcements, setAnnouncements] = useState(fallbackAnnouncements);
   const [blogs, setBlogs] = useState(fallbackBlogs);
+  const [destinations, setDestinations] = useState(fallbackDestinations);
   const [driverTrips, setDriverTrips] = useState([]);
   const [adminInvites, setAdminInvites] = useState([]);
 
@@ -90,6 +94,22 @@ export function AppDataProvider({ children }) {
           return;
         }
         setBlogs(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
+      },
+      () => {}
+    );
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const destinationsQuery = query(collection(db, 'destinations'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(
+      destinationsQuery,
+      (snapshot) => {
+        if (snapshot.empty) {
+          return;
+        }
+        setDestinations(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
       },
       () => {}
     );
@@ -190,6 +210,31 @@ export function AppDataProvider({ children }) {
     await deleteDoc(doc(db, 'blogs', id));
   };
 
+  const addDestination = async (payload) => {
+    const destinationId = payload.id?.trim();
+    if (!destinationId) {
+      throw new Error('Destination ID is required.');
+    }
+
+    await setDoc(doc(db, 'destinations', destinationId), {
+      ...payload,
+      id: destinationId,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  };
+
+  const updateDestination = async (id, payload) => {
+    await updateDoc(doc(db, 'destinations', id), {
+      ...payload,
+      updatedAt: serverTimestamp()
+    });
+  };
+
+  const deleteDestination = async (id) => {
+    await deleteDoc(doc(db, 'destinations', id));
+  };
+
   const markStopAsCompleted = async (tripId, stopIndex) => {
     const targetTrip = driverTrips.find((trip) => trip.id === tripId);
     if (!targetTrip) {
@@ -222,6 +267,9 @@ export function AppDataProvider({ children }) {
     if (!currentUser) {
       throw new Error('You must be logged in.');
     }
+    if (userData?.role !== 'super_admin') {
+      throw new Error('Only super admins can generate invite links.');
+    }
 
     const token = `invite-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
     const expiresAt = new Date(Date.now() + hoursValid * 60 * 60 * 1000);
@@ -232,7 +280,7 @@ export function AppDataProvider({ children }) {
       used: false
     });
 
-    return `${window.location.origin}/admin/signup?token=${encodeURIComponent(token)}`;
+    return `${window.location.origin}/portal-admin/signup?token=${encodeURIComponent(token)}`;
   };
 
   const readAdminInvite = async (token) => {
@@ -256,6 +304,7 @@ export function AppDataProvider({ children }) {
     () => ({
       announcements,
       blogs,
+      destinations,
       driverTrips,
       adminInvites,
       addAnnouncement,
@@ -264,11 +313,14 @@ export function AppDataProvider({ children }) {
       addBlog,
       updateBlog,
       deleteBlog,
+      addDestination,
+      updateDestination,
+      deleteDestination,
       markStopAsCompleted,
       createAdminInvite,
       readAdminInvite
     }),
-    [announcements, blogs, driverTrips, adminInvites]
+    [announcements, blogs, destinations, driverTrips, adminInvites]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

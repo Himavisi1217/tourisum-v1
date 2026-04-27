@@ -1,20 +1,32 @@
 import React, { useMemo, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { useAppData } from '../../context/AppDataContext';
+import { useAuth } from '../../context/AuthContext';
 
 const TINYMCE_API_KEY = 'vv5oujdq57rgayml40szit35kn2lsjdzj57a4bhf0yevhnq0';
 
 const initialAnnouncement = {
   title: '',
   message: '',
+  type: 'banner',
   imageUrl: ''
 };
 
 const initialBlog = {
   title: '',
   excerpt: '',
+  type: 'travel_guide',
   coverImageUrl: '',
   content: '<p>Write your blog content here.</p>'
+};
+
+const initialDestination = {
+  id: '',
+  name: '',
+  shortDescription: '',
+  imageUrl: '',
+  popularity: '',
+  details: ''
 };
 
 const editorConfig = {
@@ -29,6 +41,7 @@ const AdminDashboard = () => {
   const {
     announcements,
     blogs,
+    destinations,
     adminInvites,
     addAnnouncement,
     updateAnnouncement,
@@ -36,14 +49,22 @@ const AdminDashboard = () => {
     addBlog,
     updateBlog,
     deleteBlog,
+    addDestination,
+    updateDestination,
+    deleteDestination,
     createAdminInvite
   } = useAppData();
+  const { userData } = useAuth();
   const [announcementForm, setAnnouncementForm] = useState(initialAnnouncement);
   const [blogForm, setBlogForm] = useState(initialBlog);
+  const [destinationForm, setDestinationForm] = useState(initialDestination);
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState('');
   const [selectedBlogId, setSelectedBlogId] = useState('');
+  const [selectedDestinationId, setSelectedDestinationId] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [errorFeedback, setErrorFeedback] = useState('');
   const [generatedInviteLink, setGeneratedInviteLink] = useState('');
+  const isSuperAdmin = userData?.role === 'super_admin';
 
   const selectedAnnouncement = useMemo(
     () => announcements.find((item) => item.id === selectedAnnouncementId),
@@ -51,6 +72,10 @@ const AdminDashboard = () => {
   );
 
   const selectedBlog = useMemo(() => blogs.find((item) => item.id === selectedBlogId), [blogs, selectedBlogId]);
+  const selectedDestination = useMemo(
+    () => destinations.find((item) => item.id === selectedDestinationId),
+    [destinations, selectedDestinationId]
+  );
 
   const submitAnnouncement = async (event) => {
     event.preventDefault();
@@ -85,6 +110,7 @@ const AdminDashboard = () => {
     setAnnouncementForm({
       title: selectedAnnouncement.title || '',
       message: selectedAnnouncement.message || '',
+      type: selectedAnnouncement.type || 'banner',
       imageUrl: selectedAnnouncement.imageUrl || ''
     });
   };
@@ -96,8 +122,37 @@ const AdminDashboard = () => {
     setBlogForm({
       title: selectedBlog.title || '',
       excerpt: selectedBlog.excerpt || '',
+      type: selectedBlog.type || 'travel_guide',
       coverImageUrl: selectedBlog.coverImageUrl || '',
       content: selectedBlog.content || '<p></p>'
+    });
+  };
+
+  const submitDestination = async (event) => {
+    event.preventDefault();
+    if (selectedDestinationId) {
+      await updateDestination(selectedDestinationId, destinationForm);
+      setFeedback('Destination updated.');
+    } else {
+      await addDestination(destinationForm);
+      setFeedback('Destination added.');
+    }
+    setDestinationForm(initialDestination);
+    setSelectedDestinationId('');
+  };
+
+  const editDestination = () => {
+    if (!selectedDestination) {
+      return;
+    }
+
+    setDestinationForm({
+      id: selectedDestination.id || '',
+      name: selectedDestination.name || '',
+      shortDescription: selectedDestination.shortDescription || '',
+      imageUrl: selectedDestination.imageUrl || '',
+      popularity: selectedDestination.popularity || '',
+      details: selectedDestination.details || ''
     });
   };
 
@@ -108,41 +163,159 @@ const AdminDashboard = () => {
         Publish announcements/blogs and create temporary admin signup links.
       </p>
       {feedback ? <p style={{ color: '#166534', marginBottom: '1rem' }}>{feedback}</p> : null}
+      {errorFeedback ? <p style={{ color: '#b91c1c', marginBottom: '1rem' }}>{errorFeedback}</p> : null}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
-        <section className="card">
-          <h3>Create Admin Signup Link</h3>
-          <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
-            Generate a temporary invite URL and share it with the new admin.
-          </p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={async () => {
-              const link = await createAdminInvite({ hoursValid: 24 });
-              setGeneratedInviteLink(link);
-              setFeedback('Temporary admin signup link created.');
-            }}
-          >
-            Generate 24h Invite Link
-          </button>
-          {generatedInviteLink ? (
-            <div style={{ marginTop: '1rem' }}>
-              <label>Share this link</label>
-              <input readOnly value={generatedInviteLink} />
+        {isSuperAdmin ? (
+          <section className="card">
+            <h3>Create Admin Signup Link</h3>
+            <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
+              Generate a temporary invite URL and share it with the new admin.
+            </p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={async () => {
+                try {
+                  setErrorFeedback('');
+                  const link = await createAdminInvite({ hoursValid: 24 });
+                  setGeneratedInviteLink(link);
+                  setFeedback('Temporary admin signup link created.');
+                } catch (error) {
+                  setErrorFeedback(error.message || 'Failed to generate invite link.');
+                }
+              }}
+            >
+              Generate 24h Invite Link
+            </button>
+            {generatedInviteLink ? (
+              <div style={{ marginTop: '1rem' }}>
+                <label>Share this link</label>
+                <input readOnly value={generatedInviteLink} />
+              </div>
+            ) : null}
+            {adminInvites.length > 0 ? (
+              <div style={{ marginTop: '1rem' }}>
+                <h4>Recent Invites</h4>
+                {adminInvites.slice(0, 5).map((invite) => (
+                  <p key={invite.id} style={{ fontSize: '0.9rem', color: 'var(--color-muted)' }}>
+                    {invite.id} - {invite.used ? 'used' : 'active'}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : (
+          <section className="card">
+            <h3>Create Admin Signup Link</h3>
+            <p style={{ color: 'var(--color-muted)' }}>
+              Invite link generation is available only for super admin accounts.
+            </p>
+          </section>
+        )}
+
+        {isSuperAdmin ? (
+          <section className="card">
+            <h3>Destinations</h3>
+            <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
+              Add more destinations that will appear on the public destination pages.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <select value={selectedDestinationId} onChange={(event) => setSelectedDestinationId(event.target.value)}>
+                <option value="">Select destination</option>
+                {destinations.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+              <button type="button" className="btn-secondary" onClick={editDestination}>
+                Load
+              </button>
+              {selectedDestinationId ? (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={async () => {
+                    await deleteDestination(selectedDestinationId);
+                    setSelectedDestinationId('');
+                    setDestinationForm(initialDestination);
+                    setFeedback('Destination deleted.');
+                  }}
+                >
+                  Delete
+                </button>
+              ) : null}
             </div>
-          ) : null}
-          {adminInvites.length > 0 ? (
-            <div style={{ marginTop: '1rem' }}>
-              <h4>Recent Invites</h4>
-              {adminInvites.slice(0, 5).map((invite) => (
-                <p key={invite.id} style={{ fontSize: '0.9rem', color: 'var(--color-muted)' }}>
-                  {invite.id} - {invite.used ? 'used' : 'active'}
-                </p>
-              ))}
-            </div>
-          ) : null}
-        </section>
+            <form onSubmit={submitDestination}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Destination ID (slug)</label>
+                <input
+                  placeholder="example: polonnaruwa"
+                  value={destinationForm.id}
+                  onChange={(event) =>
+                    setDestinationForm((previous) => ({ ...previous, id: event.target.value }))
+                  }
+                  required
+                  disabled={Boolean(selectedDestinationId)}
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Name</label>
+                <input
+                  value={destinationForm.name}
+                  onChange={(event) =>
+                    setDestinationForm((previous) => ({ ...previous, name: event.target.value }))
+                  }
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Short Description</label>
+                <input
+                  value={destinationForm.shortDescription}
+                  onChange={(event) =>
+                    setDestinationForm((previous) => ({ ...previous, shortDescription: event.target.value }))
+                  }
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Popularity</label>
+                <input
+                  value={destinationForm.popularity}
+                  onChange={(event) =>
+                    setDestinationForm((previous) => ({ ...previous, popularity: event.target.value }))
+                  }
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Image URL</label>
+                <input
+                  type="url"
+                  value={destinationForm.imageUrl}
+                  onChange={(event) =>
+                    setDestinationForm((previous) => ({ ...previous, imageUrl: event.target.value }))
+                  }
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Details</label>
+                <textarea
+                  rows={4}
+                  value={destinationForm.details}
+                  onChange={(event) =>
+                    setDestinationForm((previous) => ({ ...previous, details: event.target.value }))
+                  }
+                  required
+                />
+              </div>
+              <button className="btn-primary">{selectedDestinationId ? 'Update' : 'Add'} Destination</button>
+            </form>
+          </section>
+        ) : null}
 
         <section className="card">
           <h3>Announcements</h3>
@@ -197,6 +370,19 @@ const AdminDashboard = () => {
                 }
                 required
               />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Announcement Type</label>
+              <select
+                value={announcementForm.type}
+                onChange={(event) =>
+                  setAnnouncementForm((previous) => ({ ...previous, type: event.target.value }))
+                }
+              >
+                <option value="banner">Banner Announcement</option>
+                <option value="popup">Popup Message</option>
+                <option value="notice">Notice</option>
+              </select>
             </div>
             <div style={{ marginBottom: '1rem' }}>
               <label>Image URL</label>
@@ -259,6 +445,18 @@ const AdminDashboard = () => {
                 onChange={(event) => setBlogForm((previous) => ({ ...previous, excerpt: event.target.value }))}
                 required
               />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Blog Type</label>
+              <select
+                value={blogForm.type}
+                onChange={(event) => setBlogForm((previous) => ({ ...previous, type: event.target.value }))}
+              >
+                <option value="travel_guide">Travel Guide</option>
+                <option value="destination_spotlight">Destination Spotlight</option>
+                <option value="travel_tips">Travel Tips</option>
+                <option value="company_update">Company Update</option>
+              </select>
             </div>
             <div style={{ marginBottom: '1rem' }}>
               <label>Cover Image URL</label>
