@@ -28,7 +28,7 @@ import AdminPanel from './pages/Admin/AdminPanel';
 import { Navigate } from 'react-router-dom';
 import Footer from './components/Footer/Footer';
 import DestinationDetailsPage from './pages/Destinations/DestinationDetailsPage';
-
+import PrivacyPolicy from './pages/Privacy/PrivacyPolicy';
 function App() {
   return (
     <Router>
@@ -57,6 +57,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/blogs" element={<BlogsPage />} />
             <Route path="/blogs/:id" element={<BlogDetails />} />
             <Route path="/portal-admin/login" element={<AdminLogin />} />

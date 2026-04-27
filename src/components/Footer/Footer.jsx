@@ -26,13 +26,13 @@ const Footer = () => {
             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <li><a href="#">Help center</a></li>
               <li><a href="#">Contact us</a></li>
-              <li><a href="#">Privacy policy</a></li>
+              <li><Link to="/privacy-policy">Privacy policy</Link></li>
             </ul>
           </div>
           <div>
             <h3 style={{ color: 'var(--color-cream)', marginBottom: '1.5rem' }}>Contact</h3>
             <p style={{ marginBottom: '0.5rem' }}>+94 70 123 4567</p>
-            <p>support@srilankatravels.com</p>
+            <p>support@serendibtravels.com</p>
           </div>
         </div>
         <div style={{ textAlign: 'center', fontSize: '0.85rem' }}>
