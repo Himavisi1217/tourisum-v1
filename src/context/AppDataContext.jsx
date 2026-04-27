@@ -21,7 +21,7 @@ const AppDataContext = createContext();
 const fallbackAnnouncements = [
   {
     id: 'a1',
-    title: 'Welcome to Sri Lanka Travels',
+    title: 'Welcome to Serendib Travels',
     message: 'Book trusted drivers and premium vehicles for your island trip.',
     type: 'banner',
     imageUrl: 'https://images.unsplash.com/photo-1541410965313-d53b3c16ef17?auto=format&fit=crop&w=1200&q=80',

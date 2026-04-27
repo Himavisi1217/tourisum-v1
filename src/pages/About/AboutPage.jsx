@@ -6,7 +6,7 @@ const AboutPage = () => {
     <div className="container section" style={{ maxWidth: 920 }}>
       <h2>About Us</h2>
       <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
-        Sri Lanka Travels helps local and international guests explore the island safely with curated journeys,
+        Serendib Travels helps local and international guests explore the island safely with curated journeys,
         trusted drivers, and flexible vehicle options.
       </p>
       <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>

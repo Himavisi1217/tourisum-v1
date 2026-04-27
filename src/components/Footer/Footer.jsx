@@ -36,7 +36,7 @@ const Footer = () => {
           </div>
         </div>
         <div style={{ textAlign: 'center', fontSize: '0.85rem' }}>
-          <p>© 2026 Sri Lanka Travels. All rights reserved.</p>
+          <p>© 2026 Serendib Travels. All rights reserved.</p>
         </div>
       </div>
     </footer>

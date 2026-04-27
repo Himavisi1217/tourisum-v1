@@ -14,7 +14,7 @@ const AnnouncementsPage = () => {
     <div className="container section">
       <h2>Announcements</h2>
       <p style={{ color: 'var(--color-muted)', marginBottom: '2rem' }}>
-        Latest updates from Sri Lanka Travels.
+        Latest updates from Serendib Travels.
       </p>
       <div style={{ display: 'grid', gap: '1rem' }}>
         {announcements.map((announcement) => (
