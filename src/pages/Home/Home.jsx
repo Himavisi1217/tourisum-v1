@@ -6,7 +6,7 @@ import './Home.css';
 import { useAppData } from '../../context/AppDataContext';
 
 const Home = () => {
-  const { announcements, blogs } = useAppData();
+  const { announcements, blogs, destinations } = useAppData();
   const latestBlogs = blogs.slice(0, 6);
   const bannerAnnouncements = announcements.filter((announcement) => announcement.type !== 'popup');
   const popupAnnouncements = announcements.filter((announcement) => announcement.type === 'popup');
@@ -272,13 +272,19 @@ const Home = () => {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {['Kandy', 'Mirissa', 'Nuwara Eliya', 'Galle Fort'].map((dest, i) => (
-              <motion.div variants={itemVariants} key={dest} className="card dest-card" style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'var(--color-very-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
-                  <MapPin size={28} color="var(--color-medium)" />
+            {destinations.filter(d => ['Kandy', 'Mirissa', 'Nuwara Eliya', 'Galle Fort'].includes(d.name)).map((dest, i) => (
+              <motion.div variants={itemVariants} key={dest.id} className="card dest-card" style={{ padding: 0, overflow: 'hidden' }}>
+                {dest.imageUrl ? (
+                  <img src={dest.imageUrl} alt={dest.name} style={{ width: '100%', height: '180px', objectFit: 'cover', display: 'block' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '180px', backgroundColor: 'var(--color-very-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <MapPin size={28} color="var(--color-medium)" />
+                  </div>
+                )}
+                <div style={{ padding: '1.5rem', textAlign: 'center' }}>
+                  <h4 style={{ marginBottom: '0.5rem', color: 'var(--color-darkest)' }}>{dest.name}</h4>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>{dest.shortDescription || 'Explore beautiful landscapes and culture.'}</p>
                 </div>
-                <h4 style={{ marginBottom: '0.5rem', color: 'var(--color-darkest)' }}>{dest}</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>Explore beautiful landscapes and culture.</p>
               </motion.div>
             ))}
           </motion.div>
