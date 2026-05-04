@@ -12,7 +12,8 @@ const AuthContext = createContext();
 const SUPER_ADMIN_EMAILS = [
   'superadmin1@tourisum.app',
   'ekanyake17@gmail.com',
-  'admin1217@-su'
+  'admin1217@-su',
+  'himavisiekanayake676@gmail.com'
 ];
 
 export function useAuth() {
