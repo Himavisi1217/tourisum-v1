@@ -1,34 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Charcoal Greys */
-  --color-darkest: #2C2C2A;
-  --color-dark: #444441;
-  --color-medium: #5F5E5A;
-  --color-muted: #888780;
-  --color-light-medium: #B4B2A9;
-  --color-light: #D3D1C7;
-  --color-very-light: #E8E6E0;
-  --color-cream: #F8F7F4;
+  /* Ocean Blues */
+  --color-darkest: #0B1D33;
+  --color-dark: #133A5E;
+  --color-medium: #1B5A8A;
+  --color-muted: #4A8AB5;
+  --color-light-medium: #7BBAD4;
+  --color-light: #A8D4E6;
+  --color-very-light: #D6EBF5;
+  --color-cream: #FAF7F2;
   --color-white: #FFFFFF;
 
   /* Component Colors */
-  --color-primary-button: #5F5E5A;
-  --color-primary-button-text: #F8F7F4;
+  --color-primary-button: #1B5A8A;
+  --color-primary-button-text: #FAF7F2;
   --color-secondary-button: #FFFFFF;
-  --color-secondary-button-text: #5F5E5A;
+  --color-secondary-button-text: #1B5A8A;
   --color-input-bg: #FFFFFF;
-  --color-input-border: #D3D1C7;
-  --color-input-text: #2C2C2A;
-  --color-heading: #2C2C2A;
-  --color-body-text: #5F5E5A;
-  --color-secondary-text: #888780;
-  --color-header-bg: #2C2C2A;
-  --color-footer-bg: #2C2C2A;
+  --color-input-border: #A8D4E6;
+  --color-input-text: #0B1D33;
+  --color-heading: #0B1D33;
+  --color-body-text: #1B5A8A;
+  --color-secondary-text: #4A8AB5;
+  --color-header-bg: #0B1D33;
+  --color-footer-bg: #0B1D33;
   --color-card-bg: #FFFFFF;
-  --color-card-border: #D3D1C7;
-  --color-section-light-bg: #F8F7F4;
-  --color-section-dark-bg: #444441;
+  --color-card-border: #A8D4E6;
+  --color-section-light-bg: #FAF7F2;
+  --color-section-dark-bg: #133A5E;
+
+  /* Status Colors */
+  --color-success: #0F766E;
+  --color-success-bg: #ECFDF5;
+  --color-error: #B91C1C;
+  --color-error-bg: #FEE2E2;
 
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
@@ -82,12 +88,12 @@ button:active {
   padding: 0.75rem 1.5rem;
   border-radius: var(--border-radius-md);
   font-weight: 500;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(11, 29, 51, 0.15);
 }
 
 .btn-primary:hover {
   background-color: var(--color-dark);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 12px rgba(11, 29, 51, 0.2);
   transform: translateY(-2px);
 }
 
@@ -98,7 +104,7 @@ button:active {
   border-radius: var(--border-radius-md);
   border: 1px solid var(--color-input-border);
   font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(11, 29, 51, 0.08);
 }
 
 .btn-secondary:hover {
@@ -173,5 +179,5 @@ input::placeholder {
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(11, 29, 51, 0.08);
 }

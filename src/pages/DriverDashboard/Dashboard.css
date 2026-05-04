@@ -144,7 +144,7 @@
 }
 
 .calendar-day.today {
-  background-color: #f0fdf4;
+  background-color: var(--color-very-light);
 }
 
 .calendar-day.today .day-number {

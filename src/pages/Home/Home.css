@@ -30,7 +30,7 @@
 
 .booking-widget {
   padding: 2.5rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(11, 29, 51, 0.12);
 }
 
 .booking-widget h3 {
@@ -70,7 +70,7 @@
 
 .dest-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 15px 30px rgba(11, 29, 51, 0.1);
   border-color: var(--color-medium);
 }
 

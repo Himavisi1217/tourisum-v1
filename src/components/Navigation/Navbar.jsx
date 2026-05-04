@@ -34,13 +34,13 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-container container">
-        <Link to="/" className="navbar-logo">
-          Serendib Travels
-        </Link>
-        
         <div className="menu-icon" onClick={toggleMenu}>
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </div>
+
+        <Link to="/" className="navbar-logo">
+          Serendib Travels
+        </Link>
 
         <ul className={isOpen ? "nav-menu active" : "nav-menu"}>
           <li className="nav-item">
@@ -139,22 +139,21 @@ const Navbar = () => {
                   </Link>
                 </li>
               )}
-              <li className="nav-item" style={{ display: 'flex', alignItems: 'center', marginLeft: '1rem' }}>
-                <button onClick={() => { handleLogout(); closeMenus(); }} className="btn-secondary nav-btn" style={{ padding: '0.5rem 1rem' }}>
-                  Logout
-                </button>
-              </li>
             </>
-          ) : (
-            <>
-              <li className="nav-item">
-                <Link to="/login" className="btn-primary nav-btn" onClick={closeMenus}>
-                  Login
-                </Link>
-              </li>
-            </>
-          )}
+          ) : null}
         </ul>
+
+        <div className="nav-auth">
+          {currentUser ? (
+            <button onClick={() => { handleLogout(); closeMenus(); }} className="btn-secondary nav-btn" style={{ padding: '0.4rem 1rem' }}>
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" className="btn-primary nav-btn" onClick={closeMenus} style={{ padding: '0.4rem 1rem' }}>
+              Login
+            </Link>
+          )}
+        </div>
       </div>
     </nav>
   );

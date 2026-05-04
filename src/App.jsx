@@ -45,7 +45,7 @@ function App() {
             <Route path="/destinations/:id" element={<DestinationDetailsPage />} />
             <Route path="/book-journey" element={<BookJourneyPage />} />
             <Route path="/rent-driver-with-vehicle" element={<RentDriverWithVehiclePage />} />
-            <Route path="/book-now" element={<BookNowPage />} />
+            <Route path="/book-now" element={<ProtectedRoute redirectTo="/login"><BookNowPage /></ProtectedRoute>} />
             <Route path="/about-us" element={<AboutPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/contact" element={<ContactPage />} />
