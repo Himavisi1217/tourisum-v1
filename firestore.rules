@@ -1,0 +1,109 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function authEmail() {
+      return request.auth.token.email;
+    }
+
+    function isKnownSuperAdminEmail() {
+      return isSignedIn() && authEmail() in [
+        'superadmin1@tourisum.app',
+        'ekanyake17@gmail.com',
+        'admin1217@-su',
+        'himavisiekanayake676@gmail.com'
+      ];
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userRole() {
+      return isSignedIn() && userDoc().exists() ? userDoc().data.role : null;
+    }
+
+    function isSuperAdmin() {
+      return isKnownSuperAdminEmail() || userRole() == 'super_admin';
+    }
+
+    function isAdminOrSuperAdmin() {
+      return isSuperAdmin() || userRole() == 'admin';
+    }
+
+    function isDriver() {
+      return userRole() == 'driver';
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdminOrSuperAdmin());
+
+      // Allow a signed-in account to create its own profile document once.
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && !exists(/databases/$(database)/documents/users/$(userId))
+        && request.resource.data.email == authEmail()
+        && request.resource.data.role in ['user', 'driver', 'admin', 'super_admin'];
+
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role == resource.data.role;
+
+      allow delete: if false;
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow create, update, delete: if isAdminOrSuperAdmin();
+    }
+
+    match /destinations/{destinationId} {
+      allow read: if true;
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    match /driverRequests/{requestId} {
+      // Public can submit driver applications
+      allow create: if true;
+
+      // Admin/super admin can review
+      allow read, update: if isAdminOrSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /trips/{tripId} {
+      // Drivers can read/update their own assigned trips.
+      // Admin/super admin can manage all trips.
+      allow read: if (isSignedIn() && resource.data.assignedDriverId == request.auth.uid) || isAdminOrSuperAdmin();
+      allow create, delete: if isAdminOrSuperAdmin();
+      allow update: if (isSignedIn() && resource.data.assignedDriverId == request.auth.uid) || isAdminOrSuperAdmin();
+    }
+
+    match /adminInvites/{inviteId} {
+      // Required so /portal-admin/signup?token=... can validate before login.
+      allow get: if true;
+
+      // Super admins can create/list/manage invites.
+      allow list, create, delete: if isSuperAdmin();
+
+      // Allow invite consumer to mark token as used exactly once.
+      allow update: if isSuperAdmin() || (
+        isSignedIn()
+        && resource.data.used == false
+        && request.resource.data.used == true
+        && request.resource.data.usedByUid == request.auth.uid
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.expiresAt == resource.data.expiresAt
+      );
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
