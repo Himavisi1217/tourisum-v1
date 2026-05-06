@@ -24,7 +24,7 @@ service cloud.firestore {
     }
 
     function userRole() {
-      return isSignedIn() && userDoc().exists() ? userDoc().data.role : null;
+      return isSignedIn() && userDoc().data != null ? userDoc().data.role : null;
     }
 
     function isSuperAdmin() {
@@ -45,7 +45,7 @@ service cloud.firestore {
       // Allow a signed-in account to create its own profile document once.
       allow create: if isSignedIn()
         && request.auth.uid == userId
-        && !exists(/databases/$(database)/documents/users/$(userId))
+        && userDoc().data == null
         && request.resource.data.email == authEmail()
         && request.resource.data.role in ['user', 'driver', 'admin', 'super_admin'];
 
