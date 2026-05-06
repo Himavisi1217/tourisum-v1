@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -10,8 +10,11 @@ const Navbar = () => {
   const [showAbout, setShowAbout] = useState(false);
   const { currentUser, userData, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isAdminUser = userData?.role === 'admin' || userData?.role === 'super_admin';
   const canViewAnnouncements = isAdminUser;
+  const isAdminArea =
+    location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal-admin');
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -44,6 +47,35 @@ const Navbar = () => {
         </Link>
 
         <ul className={isOpen ? "nav-menu active" : "nav-menu"}>
+          {isAdminArea ? (
+            <>
+              <li className="nav-item">
+                <Link to="/" className="nav-links" onClick={closeMenus}>
+                  Home
+                </Link>
+              </li>
+              {isAdminUser ? (
+                <>
+                  <li className="nav-item">
+                    <Link to="/admin/dashboard" className="nav-links" onClick={closeMenus}>
+                      Admin Dashboard
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/admin/panel" className="nav-links" onClick={closeMenus}>
+                      Admin Panel
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/announcements" className="nav-links" onClick={closeMenus}>
+                      Announcements
+                    </Link>
+                  </li>
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
           <li className="nav-item">
             <Link to="/" className="nav-links" onClick={closeMenus}>
               Home
@@ -142,6 +174,8 @@ const Navbar = () => {
               )}
             </>
           ) : null}
+            </>
+          )}
         </ul>
 
         <div className="nav-auth">
