@@ -358,6 +358,19 @@ export function AppDataProvider({ children }) {
     }
   };
 
+  const generateSecureNumericToken = (length = 12) => {
+    const digits = '0123456789';
+    let token = '';
+    const randomBytes = new Uint8Array(length);
+    window.crypto.getRandomValues(randomBytes);
+
+    for (let index = 0; index < length; index += 1) {
+      token += digits[randomBytes[index] % 10];
+    }
+
+    return token;
+  };
+
   const createAdminInvite = async ({ hoursValid = 24 } = {}) => {
     if (!currentUser) {
       throw new Error('You must be logged in.');
@@ -366,7 +379,24 @@ export function AppDataProvider({ children }) {
       throw new Error('Only super admins can generate invite links.');
     }
 
-    const token = `invite-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+    let token = '';
+    let tokenAvailable = false;
+    let attempt = 0;
+    while (attempt < 5) {
+      const numericToken = generateSecureNumericToken(12);
+      token = `invite-${numericToken}`;
+      // Prevent accidental overwrite if an identical token already exists.
+      // Collision chance is very low, but we still check for safety.
+      const existingInvite = await getDoc(doc(db, 'adminInvites', token));
+      if (!existingInvite.exists()) {
+        tokenAvailable = true;
+        break;
+      }
+      attempt += 1;
+    }
+    if (!tokenAvailable) {
+      throw new Error('Failed to generate invite token.');
+    }
     const expiresAt = new Date(Date.now() + hoursValid * 60 * 60 * 1000);
     await setDoc(doc(db, 'adminInvites', token), {
       createdBy: currentUser.uid,

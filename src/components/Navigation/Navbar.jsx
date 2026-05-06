@@ -10,7 +10,8 @@ const Navbar = () => {
   const [showAbout, setShowAbout] = useState(false);
   const { currentUser, userData, logout } = useAuth();
   const navigate = useNavigate();
-  const canViewAnnouncements = userData?.role === 'admin' || userData?.role === 'super_admin';
+  const isAdminUser = userData?.role === 'admin' || userData?.role === 'super_admin';
+  const canViewAnnouncements = isAdminUser;
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -125,7 +126,7 @@ const Navbar = () => {
                   </Link>
                 </li>
               )}
-              {userData?.role === 'super_admin' && (
+              {isAdminUser && (
                 <li className="nav-item">
                   <Link to="/admin/dashboard" className="nav-links" onClick={closeMenus}>
                     Admin Dashboard
