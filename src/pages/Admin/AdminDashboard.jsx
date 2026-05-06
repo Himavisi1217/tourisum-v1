@@ -44,6 +44,7 @@ const AdminDashboard = () => {
     destinations,
     adminInvites,
     driverRequests,
+    contentRequests,
     addAnnouncement,
     updateAnnouncement,
     deleteAnnouncement,
@@ -55,7 +56,9 @@ const AdminDashboard = () => {
     deleteDestination,
     createAdminInvite,
     approveDriverRequest,
-    rejectDriverRequest
+    rejectDriverRequest,
+    approveContentRequest,
+    rejectContentRequest
   } = useAppData();
   const { userData } = useAuth();
   const [announcementForm, setAnnouncementForm] = useState(initialAnnouncement);
@@ -70,6 +73,7 @@ const AdminDashboard = () => {
   const [driverRequestFilter, setDriverRequestFilter] = useState('pending');
   const isSuperAdmin = userData?.role === 'super_admin';
   const filteredDriverRequests = driverRequests.filter((r) => r.status === driverRequestFilter);
+  const pendingContentRequests = contentRequests.filter((request) => request.status === 'pending');
 
   const selectedAnnouncement = useMemo(
     () => announcements.find((item) => item.id === selectedAnnouncementId),
@@ -163,9 +167,11 @@ const AdminDashboard = () => {
 
   return (
     <div className="container" style={{ padding: '3rem 1.5rem 4rem 1.5rem' }}>
-      <h2>Super Admin Dashboard</h2>
+      <h2>{isSuperAdmin ? 'Super Admin Dashboard' : 'Admin Dashboard'}</h2>
       <p style={{ color: 'var(--color-muted)', marginBottom: '1.5rem' }}>
-        Publish announcements/blogs and create temporary admin signup links.
+        {isSuperAdmin
+          ? 'Review requests, publish content, and manage temporary admin signup links.'
+          : 'Track operations. Publishing is restricted to super admins.'}
       </p>
       {feedback ? <p style={{ color: '#166534', marginBottom: '1rem' }}>{feedback}</p> : null}
       {errorFeedback ? <p style={{ color: '#b91c1c', marginBottom: '1rem' }}>{errorFeedback}</p> : null}
@@ -277,6 +283,100 @@ const AdminDashboard = () => {
             </div>
           )}
         </section>
+
+        {isSuperAdmin ? (
+          <section className="card">
+            <h3>Content Approval Requests</h3>
+            <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
+              Review announcement and blog requests submitted by admins.
+            </p>
+            {pendingContentRequests.length === 0 ? (
+              <p style={{ color: 'var(--color-muted)', fontSize: '0.9rem' }}>No pending content requests.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {pendingContentRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    style={{
+                      border: '1px solid var(--color-card-border)',
+                      borderRadius: 'var(--border-radius-md)',
+                      padding: '1rem',
+                      backgroundColor: 'var(--color-cream)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      <div>
+                        <h4 style={{ margin: 0 }}>
+                          <span style={{ textTransform: 'capitalize' }}>{request.type}</span> - {request.payload?.title || 'Untitled'}
+                        </h4>
+                        <p style={{ color: 'var(--color-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                          Submitted by {request.submittedByName || request.submittedByEmail || 'Admin'}
+                        </p>
+                      </div>
+                      <span
+                        style={{
+                          alignSelf: 'flex-start',
+                          fontSize: '0.75rem',
+                          textTransform: 'uppercase',
+                          backgroundColor: 'var(--color-very-light)',
+                          color: 'var(--color-medium)',
+                          borderRadius: '20px',
+                          padding: '0.2rem 0.75rem',
+                          fontWeight: '600'
+                        }}
+                      >
+                        Pending
+                      </span>
+                    </div>
+                    <p style={{ marginTop: '0.75rem', color: 'var(--color-medium)', fontSize: '0.9rem' }}>
+                      {request.payload?.excerpt || request.payload?.message || 'No preview available.'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}
+                        onClick={async () => {
+                          try {
+                            await approveContentRequest(request.id);
+                            setFeedback(`Approved ${request.type} request: ${request.payload?.title || request.id}.`);
+                          } catch (error) {
+                            setErrorFeedback(error.message || 'Failed to approve request.');
+                          }
+                        }}
+                      >
+                        Approve & Publish
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', color: 'var(--color-error)' }}
+                        onClick={async () => {
+                          const reason = window.prompt('Reason for rejection (optional):');
+                          try {
+                            await rejectContentRequest(request.id, reason || '');
+                            setFeedback(`Rejected ${request.type} request: ${request.payload?.title || request.id}.`);
+                          } catch (error) {
+                            setErrorFeedback(error.message || 'Failed to reject request.');
+                          }
+                        }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="card">
+            <h3>Content Approval Requests</h3>
+            <p style={{ color: 'var(--color-muted)' }}>
+              Super admins review and publish announcement/blog requests from the admin panel.
+            </p>
+          </section>
+        )}
 
         {isSuperAdmin ? (
           <section className="card">
@@ -429,8 +529,9 @@ const AdminDashboard = () => {
           </section>
         ) : null}
 
-        <section className="card">
-          <h3>Announcements</h3>
+        {isSuperAdmin ? (
+          <section className="card">
+            <h3>Announcements</h3>
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <select
               value={selectedAnnouncementId}
@@ -461,7 +562,7 @@ const AdminDashboard = () => {
               </button>
             ) : null}
           </div>
-          <form onSubmit={submitAnnouncement}>
+            <form onSubmit={submitAnnouncement}>
             <div style={{ marginBottom: '1rem' }}>
               <label>Title</label>
               <input
@@ -507,12 +608,14 @@ const AdminDashboard = () => {
                 }
               />
             </div>
-            <button className="btn-primary">{selectedAnnouncementId ? 'Update' : 'Add'} Announcement</button>
-          </form>
-        </section>
+              <button className="btn-primary">{selectedAnnouncementId ? 'Update' : 'Add'} Announcement</button>
+            </form>
+          </section>
+        ) : null}
 
-        <section className="card">
-          <h3>Blogs</h3>
+        {isSuperAdmin ? (
+          <section className="card">
+            <h3>Blogs</h3>
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <select value={selectedBlogId} onChange={(event) => setSelectedBlogId(event.target.value)}>
               <option value="">Select blog</option>
@@ -540,7 +643,7 @@ const AdminDashboard = () => {
               </button>
             ) : null}
           </div>
-          <form onSubmit={submitBlog}>
+            <form onSubmit={submitBlog}>
             <div style={{ marginBottom: '1rem' }}>
               <label>Title</label>
               <input
@@ -588,11 +691,12 @@ const AdminDashboard = () => {
               init={editorConfig}
               onEditorChange={(content) => setBlogForm((previous) => ({ ...previous, content }))}
             />
-            <button className="btn-primary" style={{ marginTop: '1rem' }}>
-              {selectedBlogId ? 'Update' : 'Publish'} Blog
-            </button>
-          </form>
-        </section>
+              <button className="btn-primary" style={{ marginTop: '1rem' }}>
+                {selectedBlogId ? 'Update' : 'Publish'} Blog
+              </button>
+            </form>
+          </section>
+        ) : null}
       </div>
     </div>
   );

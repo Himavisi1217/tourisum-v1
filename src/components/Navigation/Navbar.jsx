@@ -49,26 +49,16 @@ const Navbar = () => {
         <ul className={isOpen ? "nav-menu active" : "nav-menu"}>
           {isAdminArea ? (
             <>
-              <li className="nav-item">
-                <Link to="/" className="nav-links" onClick={closeMenus}>
-                  Home
-                </Link>
-              </li>
               {isAdminUser ? (
                 <>
                   <li className="nav-item">
-                    <Link to="/admin/dashboard" className="nav-links" onClick={closeMenus}>
-                      Admin Dashboard
-                    </Link>
-                  </li>
-                  <li className="nav-item">
-                    <Link to="/announcements" className="nav-links" onClick={closeMenus}>
-                      Announcements
-                    </Link>
-                  </li>
-                  <li className="nav-item nav-item-admin-panel">
                     <Link to="/admin/panel" className="nav-links" onClick={closeMenus}>
                       Admin Panel
+                    </Link>
+                  </li>
+                  <li className="nav-item nav-item-admin-dashboard">
+                    <Link to="/admin/dashboard" className="nav-links" onClick={closeMenus}>
+                      Admin Dashboard
                     </Link>
                   </li>
                 </>

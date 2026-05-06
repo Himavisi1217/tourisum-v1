@@ -70,6 +70,7 @@ export function AppDataProvider({ children }) {
   const [driverTrips, setDriverTrips] = useState([]);
   const [adminInvites, setAdminInvites] = useState([]);
   const [driverRequests, setDriverRequests] = useState([]);
+  const [contentRequests, setContentRequests] = useState([]);
 
   useEffect(() => {
     const announcementsQuery = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
@@ -221,6 +222,30 @@ export function AppDataProvider({ children }) {
     return unsubscribe;
   }, [userData?.role]);
 
+  useEffect(() => {
+    if (!userData || !['admin', 'super_admin'].includes(userData.role)) {
+      setContentRequests([]);
+      return undefined;
+    }
+
+    const contentRequestsQuery = query(collection(db, 'contentRequests'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(
+      contentRequestsQuery,
+      (snapshot) => {
+        if (snapshot.empty) {
+          setContentRequests([]);
+          return;
+        }
+        setContentRequests(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
+      },
+      () => {
+        setContentRequests([]);
+      }
+    );
+
+    return unsubscribe;
+  }, [userData?.role]);
+
   // Submit a driver signup request (from public signup form)
   const submitDriverRequest = async (requestData) => {
     await setDoc(doc(collection(db, 'driverRequests')), {
@@ -246,6 +271,69 @@ export function AppDataProvider({ children }) {
       rejectionReason: reason || '',
       reviewedBy: currentUser?.uid || 'unknown',
       reviewedAt: serverTimestamp()
+    });
+  };
+
+  const submitContentRequest = async ({ type, payload }) => {
+    if (!currentUser || !userData || !['admin', 'super_admin'].includes(userData.role)) {
+      throw new Error('Only admin users can submit content requests.');
+    }
+
+    await setDoc(doc(collection(db, 'contentRequests')), {
+      type,
+      payload,
+      status: 'pending',
+      submittedByUid: currentUser.uid,
+      submittedByName: userData.name || '',
+      submittedByEmail: userData.email || currentUser.email || '',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  };
+
+  const approveContentRequest = async (requestId) => {
+    if (!currentUser || userData?.role !== 'super_admin') {
+      throw new Error('Only super admins can approve content requests.');
+    }
+
+    const requestRef = doc(db, 'contentRequests', requestId);
+    const requestSnap = await getDoc(requestRef);
+    if (!requestSnap.exists()) {
+      throw new Error('Request not found.');
+    }
+
+    const requestData = requestSnap.data();
+    if (requestData.status !== 'pending') {
+      throw new Error('Only pending requests can be approved.');
+    }
+
+    if (requestData.type === 'announcement') {
+      await addAnnouncement(requestData.payload || {});
+    } else if (requestData.type === 'blog') {
+      await addBlog(requestData.payload || {});
+    } else {
+      throw new Error('Unsupported request type.');
+    }
+
+    await updateDoc(requestRef, {
+      status: 'approved',
+      reviewedBy: currentUser.uid,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  };
+
+  const rejectContentRequest = async (requestId, reason = '') => {
+    if (!currentUser || userData?.role !== 'super_admin') {
+      throw new Error('Only super admins can reject content requests.');
+    }
+
+    await updateDoc(doc(db, 'contentRequests', requestId), {
+      status: 'rejected',
+      rejectionReason: reason,
+      reviewedBy: currentUser.uid,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
     });
   };
 
@@ -433,6 +521,7 @@ export function AppDataProvider({ children }) {
       driverTrips,
       adminInvites,
       driverRequests,
+      contentRequests,
       addAnnouncement,
       updateAnnouncement,
       deleteAnnouncement,
@@ -447,9 +536,12 @@ export function AppDataProvider({ children }) {
       readAdminInvite,
       submitDriverRequest,
       approveDriverRequest,
-      rejectDriverRequest
+      rejectDriverRequest,
+      submitContentRequest,
+      approveContentRequest,
+      rejectContentRequest
     }),
-    [announcements, blogs, destinations, driverTrips, adminInvites, driverRequests]
+    [announcements, blogs, destinations, driverTrips, adminInvites, driverRequests, contentRequests]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

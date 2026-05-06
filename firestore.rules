@@ -58,7 +58,7 @@ service cloud.firestore {
 
     match /announcements/{announcementId} {
       allow read: if true;
-      allow create, update, delete: if isAdminOrSuperAdmin();
+      allow create, update, delete: if isSuperAdmin();
     }
 
     match /destinations/{destinationId} {
@@ -73,6 +73,13 @@ service cloud.firestore {
       // Admin/super admin can review
       allow read, update: if isAdminOrSuperAdmin();
       allow delete: if isSuperAdmin();
+    }
+
+    match /contentRequests/{requestId} {
+      // Admins submit requests; super admins approve/reject and publish.
+      allow read: if isAdminOrSuperAdmin();
+      allow create: if isAdminOrSuperAdmin();
+      allow update, delete: if isSuperAdmin();
     }
 
     match /trips/{tripId} {
