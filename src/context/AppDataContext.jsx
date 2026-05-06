@@ -13,6 +13,7 @@ import {
   where
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { supabase } from '../supabase';
 import { useAuth } from './AuthContext';
 import { destinations as fallbackDestinations } from '../data/destinationsData';
 
@@ -86,20 +87,42 @@ export function AppDataProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  // Fetch blogs from Supabase and subscribe to realtime changes
   useEffect(() => {
-    const blogsQuery = query(collection(db, 'blogs'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(
-      blogsQuery,
-      (snapshot) => {
-        if (snapshot.empty) {
-          return;
-        }
-        setBlogs(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
-      },
-      () => {}
-    );
+    const fetchBlogs = async () => {
+      const { data, error } = await supabase
+        .from('blogs')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    return unsubscribe;
+      if (!error && data && data.length > 0) {
+        setBlogs(data.map((row) => ({
+          id: row.id,
+          title: row.title,
+          excerpt: row.excerpt,
+          type: row.type,
+          coverImageUrl: row.cover_image_url,
+          content: row.content,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        })));
+      }
+    };
+
+    fetchBlogs();
+
+    // Subscribe to realtime INSERT, UPDATE, DELETE on the blogs table
+    const channel = supabase
+      .channel('blogs-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'blogs' }, () => {
+        // Re-fetch on any change for simplicity
+        fetchBlogs();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -246,22 +269,40 @@ export function AppDataProvider({ children }) {
   };
 
   const addBlog = async (payload) => {
-    await setDoc(doc(collection(db, 'blogs')), {
-      ...payload,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+    const { error } = await supabase.from('blogs').insert({
+      title: payload.title,
+      excerpt: payload.excerpt,
+      type: payload.type,
+      cover_image_url: payload.coverImageUrl || '',
+      content: payload.content
     });
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const updateBlog = async (id, payload) => {
-    await updateDoc(doc(db, 'blogs', id), {
-      ...payload,
-      updatedAt: serverTimestamp()
-    });
+    const { error } = await supabase
+      .from('blogs')
+      .update({
+        title: payload.title,
+        excerpt: payload.excerpt,
+        type: payload.type,
+        cover_image_url: payload.coverImageUrl || '',
+        content: payload.content,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const deleteBlog = async (id) => {
-    await deleteDoc(doc(db, 'blogs', id));
+    const { error } = await supabase.from('blogs').delete().eq('id', id);
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const addDestination = async (payload) => {
