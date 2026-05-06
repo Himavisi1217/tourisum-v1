@@ -68,6 +68,7 @@ export function AppDataProvider({ children }) {
   const [destinations, setDestinations] = useState(fallbackDestinations);
   const [driverTrips, setDriverTrips] = useState([]);
   const [adminInvites, setAdminInvites] = useState([]);
+  const [driverRequests, setDriverRequests] = useState([]);
 
   useEffect(() => {
     const announcementsQuery = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
@@ -171,6 +172,59 @@ export function AppDataProvider({ children }) {
 
     return unsubscribe;
   }, [userData?.role]);
+
+  // Listen for driver signup requests (admin/super_admin only)
+  useEffect(() => {
+    if (!userData || !['admin', 'super_admin'].includes(userData.role)) {
+      setDriverRequests([]);
+      return undefined;
+    }
+
+    const requestsQuery = query(collection(db, 'driverRequests'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(
+      requestsQuery,
+      (snapshot) => {
+        if (snapshot.empty) {
+          setDriverRequests([]);
+          return;
+        }
+        setDriverRequests(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
+      },
+      () => {
+        setDriverRequests([]);
+      }
+    );
+
+    return unsubscribe;
+  }, [userData?.role]);
+
+  // Submit a driver signup request (from public signup form)
+  const submitDriverRequest = async (requestData) => {
+    await setDoc(doc(collection(db, 'driverRequests')), {
+      ...requestData,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
+  };
+
+  // Approve a driver request (admin creates the account info, driver uses it to login)
+  const approveDriverRequest = async (requestId) => {
+    await updateDoc(doc(db, 'driverRequests', requestId), {
+      status: 'approved',
+      reviewedBy: currentUser?.uid || 'unknown',
+      reviewedAt: serverTimestamp()
+    });
+  };
+
+  // Reject a driver request
+  const rejectDriverRequest = async (requestId, reason) => {
+    await updateDoc(doc(db, 'driverRequests', requestId), {
+      status: 'rejected',
+      rejectionReason: reason || '',
+      reviewedBy: currentUser?.uid || 'unknown',
+      reviewedAt: serverTimestamp()
+    });
+  };
 
   const addAnnouncement = async (payload) => {
     await setDoc(doc(collection(db, 'announcements')), {
@@ -307,6 +361,7 @@ export function AppDataProvider({ children }) {
       destinations,
       driverTrips,
       adminInvites,
+      driverRequests,
       addAnnouncement,
       updateAnnouncement,
       deleteAnnouncement,
@@ -318,10 +373,14 @@ export function AppDataProvider({ children }) {
       deleteDestination,
       markStopAsCompleted,
       createAdminInvite,
-      readAdminInvite
+      readAdminInvite,
+      submitDriverRequest,
+      approveDriverRequest,
+      rejectDriverRequest
     }),
-    [announcements, blogs, destinations, driverTrips, adminInvites]
+    [announcements, blogs, destinations, driverTrips, adminInvites, driverRequests]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
 }
+

@@ -1,23 +1,42 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import MapPicker from '../../components/Maps/MapPicker';
 
 const BookNowPage = () => {
   const [pickup, setPickup] = useState('Colombo City');
   const [customPickup, setCustomPickup] = useState('');
+  const [mapLocation, setMapLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const { userData } = useAuth();
 
+  const handleLocationSelect = (location) => {
+    setMapLocation(location);
+    setPickup('map');
+    setCustomPickup(`Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}`);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
+
+    let pickupValue = pickup;
+    if (pickup === 'custom') {
+      pickupValue = customPickup;
+    } else if (pickup === 'map' && mapLocation) {
+      pickupValue = `Map Pin: ${mapLocation.lat.toFixed(6)}, ${mapLocation.lng.toFixed(6)}`;
+    }
 
     const formData = new FormData();
     formData.append('Name', event.target.bookNowName.value);
     formData.append('Email', userData?.email || 'N/A');
     formData.append('StartDate', event.target.bookNowFrom.value);
     formData.append('EndDate', event.target.bookNowTo.value);
-    formData.append('PickupLocation', pickup === 'custom' ? customPickup : pickup);
+    formData.append('PickupLocation', pickupValue);
+    if (mapLocation) {
+      formData.append('PickupLat', mapLocation.lat);
+      formData.append('PickupLng', mapLocation.lng);
+    }
     formData.append('Notes', event.target.bookNowNotes.value);
     formData.append('Timestamp', new Date().toISOString());
 
@@ -36,6 +55,7 @@ const BookNowPage = () => {
       event.target.reset();
       setPickup('Colombo City');
       setCustomPickup('');
+      setMapLocation(null);
     } catch (error) {
       console.error('Error submitting booking:', error);
       alert('Failed to submit your booking. Please try again later.');
@@ -49,7 +69,7 @@ const BookNowPage = () => {
       {showPopup && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 2000, padding: '1rem' }}>
           <div className="card" style={{ textAlign: 'center', padding: '2.5rem 2rem', maxWidth: '400px', width: '100%' }}>
-            <h3 style={{ color: '#166534', marginBottom: '1rem', fontSize: '1.5rem' }}>Booking Request Sent! 🎉</h3>
+            <h3 style={{ color: 'var(--color-success)', marginBottom: '1rem', fontSize: '1.5rem' }}>Booking Request Sent! 🎉</h3>
             <p style={{ marginBottom: '1.5rem', color: 'var(--color-muted)' }}>
               We have successfully received your booking details. Our team will review your request and get back to you shortly to confirm your trip!
             </p>
@@ -82,13 +102,14 @@ const BookNowPage = () => {
 
         <div>
           <label htmlFor="bookNowPickup">Pickup location</label>
-          <select id="bookNowPickup" value={pickup} onChange={(e) => setPickup(e.target.value)}>
+          <select id="bookNowPickup" value={pickup} onChange={(e) => { setPickup(e.target.value); setMapLocation(null); }}>
             <option value="Colombo City">Colombo City</option>
             <option value="Bandaranaike International Airport">Bandaranaike International Airport</option>
             <option value="Kandy">Kandy</option>
             <option value="Galle">Galle</option>
             <option value="Ella">Ella</option>
-            <option value="custom">Custom location</option>
+            <option value="custom">Type a custom location</option>
+            <option value="map">📍 Pick on map</option>
           </select>
         </div>
 
@@ -104,6 +125,23 @@ const BookNowPage = () => {
             />
           </div>
         ) : null}
+
+        {pickup === 'map' && (
+          <div>
+            <label>Click on the map to select your pickup point</label>
+            <MapPicker
+              onLocationSelect={handleLocationSelect}
+              selectedLocation={mapLocation}
+              zoom={8}
+              height="350px"
+            />
+            {mapLocation && (
+              <p style={{ color: 'var(--color-success)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                📍 Selected: {mapLocation.lat.toFixed(6)}, {mapLocation.lng.toFixed(6)}
+              </p>
+            )}
+          </div>
+        )}
 
         <div>
           <label htmlFor="bookNowNotes">Additional notes</label>

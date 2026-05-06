@@ -43,6 +43,7 @@ const AdminDashboard = () => {
     blogs,
     destinations,
     adminInvites,
+    driverRequests,
     addAnnouncement,
     updateAnnouncement,
     deleteAnnouncement,
@@ -52,7 +53,9 @@ const AdminDashboard = () => {
     addDestination,
     updateDestination,
     deleteDestination,
-    createAdminInvite
+    createAdminInvite,
+    approveDriverRequest,
+    rejectDriverRequest
   } = useAppData();
   const { userData } = useAuth();
   const [announcementForm, setAnnouncementForm] = useState(initialAnnouncement);
@@ -64,7 +67,9 @@ const AdminDashboard = () => {
   const [feedback, setFeedback] = useState('');
   const [errorFeedback, setErrorFeedback] = useState('');
   const [generatedInviteLink, setGeneratedInviteLink] = useState('');
+  const [driverRequestFilter, setDriverRequestFilter] = useState('pending');
   const isSuperAdmin = userData?.role === 'super_admin';
+  const filteredDriverRequests = driverRequests.filter((r) => r.status === driverRequestFilter);
 
   const selectedAnnouncement = useMemo(
     () => announcements.find((item) => item.id === selectedAnnouncementId),
@@ -166,6 +171,113 @@ const AdminDashboard = () => {
       {errorFeedback ? <p style={{ color: '#b91c1c', marginBottom: '1rem' }}>{errorFeedback}</p> : null}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+        {/* Driver Signup Requests */}
+        <section className="card">
+          <h3>Driver Signup Requests</h3>
+          <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
+            Review and manage driver partner applications.
+          </p>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            {['pending', 'approved', 'rejected'].map((status) => (
+              <button
+                key={status}
+                type="button"
+                className={driverRequestFilter === status ? 'btn-primary' : 'btn-secondary'}
+                style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', textTransform: 'capitalize' }}
+                onClick={() => setDriverRequestFilter(status)}
+              >
+                {status} ({driverRequests.filter((r) => r.status === status).length})
+              </button>
+            ))}
+          </div>
+          {filteredDriverRequests.length === 0 ? (
+            <p style={{ color: 'var(--color-muted)', fontSize: '0.9rem' }}>No {driverRequestFilter} requests.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {filteredDriverRequests.map((req) => (
+                <div
+                  key={req.id}
+                  style={{
+                    border: '1px solid var(--color-card-border)',
+                    borderRadius: 'var(--border-radius-md)',
+                    padding: '1.25rem',
+                    backgroundColor: 'var(--color-cream)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '1.05rem' }}>{req.name}</h4>
+                      <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem', margin: '0.25rem 0' }}>{req.email}</p>
+                    </div>
+                    <span
+                      style={{
+                        padding: '0.2rem 0.75rem',
+                        borderRadius: '20px',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        backgroundColor:
+                          req.status === 'pending' ? 'var(--color-very-light)' :
+                            req.status === 'approved' ? 'var(--color-success-bg)' : 'var(--color-error-bg)',
+                        color:
+                          req.status === 'pending' ? 'var(--color-medium)' :
+                            req.status === 'approved' ? 'var(--color-success)' : 'var(--color-error)'
+                      }}
+                    >
+                      {req.status}
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', marginTop: '0.75rem', fontSize: '0.9rem' }}>
+                    <div><strong>Mobile:</strong> {req.mobileNumber || 'N/A'}</div>
+                    <div><strong>Vehicle:</strong> {req.vehicleCategory} — {req.vehicleType}</div>
+                    <div><strong>Plate:</strong> {req.numberPlate}</div>
+                  </div>
+                  {req.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={{ padding: '0.4rem 1.2rem', fontSize: '0.85rem' }}
+                        onClick={async () => {
+                          try {
+                            await approveDriverRequest(req.id);
+                            setFeedback(`Driver request for ${req.name} approved.`);
+                          } catch (err) {
+                            setErrorFeedback(err.message);
+                          }
+                        }}
+                      >
+                        ✓ Approve
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ padding: '0.4rem 1.2rem', fontSize: '0.85rem', color: 'var(--color-error)' }}
+                        onClick={async () => {
+                          const reason = window.prompt('Reason for rejection (optional):');
+                          try {
+                            await rejectDriverRequest(req.id, reason);
+                            setFeedback(`Driver request for ${req.name} rejected.`);
+                          } catch (err) {
+                            setErrorFeedback(err.message);
+                          }
+                        }}
+                      >
+                        ✕ Reject
+                      </button>
+                    </div>
+                  )}
+                  {req.status === 'rejected' && req.rejectionReason && (
+                    <p style={{ color: 'var(--color-error)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                      <strong>Reason:</strong> {req.rejectionReason}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {isSuperAdmin ? (
           <section className="card">
             <h3>Create Admin Signup Link</h3>
