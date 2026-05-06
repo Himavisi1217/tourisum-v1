@@ -23,6 +23,8 @@
   font-size: 1.5rem;
   font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .nav-menu {
@@ -37,6 +39,10 @@
   height: 80px;
   display: flex;
   align-items: center;
+}
+
+.nav-item-admin-panel {
+  margin-left: auto;
 }
 
 .nav-links {
@@ -142,6 +148,10 @@
   .nav-item {
     width: 100%;
     height: auto;
+  }
+
+  .nav-item-admin-panel {
+    margin-left: 0;
   }
 
   .services-dropdown {
