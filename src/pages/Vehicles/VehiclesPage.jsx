@@ -51,31 +51,27 @@ const VehiclesPage = () => {
 
   return (
     <div className="container section">
-      <div className="page-shell">
-        <div className="page-shell-header">
-          <h2>Vehicles</h2>
-          <p>Choose your preferred vehicle category.</p>
-        </div>
-        <div className="grid-3">
-          {vehicles.map((vehicle) => (
-            <article key={vehicle.title} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <img src={vehicle.imageUrl} alt={vehicle.title} style={{ width: '100%', height: '210px', objectFit: 'cover' }} />
-              <div style={{ padding: '1.2rem' }}>
-                <h3>{vehicle.title}</h3>
-                <p style={{ color: 'var(--color-muted)' }}>{vehicle.details}</p>
-                <p style={{ fontWeight: 700, marginTop: '1rem' }}>{vehicle.price}</p>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ marginTop: '0.8rem' }}
-                  onClick={() => openRentalPopup(vehicle.title)}
-                >
-                  Book vehicle
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+      <h2>Vehicles</h2>
+      <p style={{ color: 'var(--color-muted)', marginBottom: '2rem' }}>Choose your preferred vehicle category.</p>
+      <div className="grid-3">
+        {vehicles.map((vehicle) => (
+          <article key={vehicle.title} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <img src={vehicle.imageUrl} alt={vehicle.title} style={{ width: '100%', height: '210px', objectFit: 'cover' }} />
+            <div style={{ padding: '1.2rem' }}>
+              <h3>{vehicle.title}</h3>
+              <p style={{ color: 'var(--color-muted)' }}>{vehicle.details}</p>
+              <p style={{ fontWeight: 700, marginTop: '1rem' }}>{vehicle.price}</p>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ marginTop: '0.8rem' }}
+                onClick={() => openRentalPopup(vehicle.title)}
+              >
+                Book vehicle
+              </button>
+            </div>
+          </article>
+        ))}
       </div>
 
       {showPopup ? (
