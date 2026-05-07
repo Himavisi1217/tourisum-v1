@@ -1,19 +1,32 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import './Dashboard.css';
 
 const DashboardLayout = () => {
+  const getLinkClass = ({ isActive }) =>
+    `sidebar-link${isActive ? ' active' : ''}`;
+
   return (
     <div className="dashboard-layout">
       <aside className="dashboard-sidebar">
         <div className="sidebar-header">
-          <h3>Driver Portal</h3>
+          <span className="sidebar-kicker">Tourism</span>
+          <h3>Driver Dashboard</h3>
+          <p>Welcome back</p>
         </div>
         <nav className="sidebar-nav">
-          <Link to="/driver-dashboard" className="sidebar-link">Overview</Link>
-          <Link to="/driver-dashboard/upcoming" className="sidebar-link">Upcoming Trips</Link>
-          <Link to="/driver-dashboard/history" className="sidebar-link">Trip History</Link>
-          <Link to="/driver-dashboard/calendar" className="sidebar-link">Schedule Calendar</Link>
+          <NavLink end to="/driver-dashboard" className={getLinkClass}>
+            Overview
+          </NavLink>
+          <NavLink to="/driver-dashboard/upcoming" className={getLinkClass}>
+            Upcoming Trips
+          </NavLink>
+          <NavLink to="/driver-dashboard/history" className={getLinkClass}>
+            Trip History
+          </NavLink>
+          <NavLink to="/driver-dashboard/calendar" className={getLinkClass}>
+            Schedule Calendar
+          </NavLink>
         </nav>
       </aside>
       <main className="dashboard-content">

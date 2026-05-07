@@ -77,15 +77,14 @@ const Home = () => {
         <div
           style={{
             position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-            display: 'grid',
-            placeItems: 'center',
+            bottom: '1.25rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
             zIndex: 1300,
-            padding: '1rem'
+            width: 'min(560px, calc(100% - 2rem))'
           }}
         >
-          <div className="card" style={{ width: 'min(560px, 100%)' }}>
+          <div className="card" style={{ width: '100%', boxShadow: '0 12px 30px rgba(11, 29, 51, 0.25)' }}>
             <h3>{activePopupAnnouncement.title}</h3>
             <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>{activePopupAnnouncement.message}</p>
             <button
