@@ -70,26 +70,28 @@ const DestinationsPage = () => {
 
   return (
     <div className="container section">
-      <h2>Destinations</h2>
-      <p style={{ color: 'var(--color-muted)', marginBottom: '2rem' }}>
-        Explore Sri Lankan attractions and click any destination to read more.
-      </p>
-      <div className="grid-3">
-        {destinations.map((destination) => (
-          <article key={destination.name} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <img src={destination.imageUrl} alt={destination.name} style={{ width: '100%', height: '210px', objectFit: 'cover' }} />
-            <div style={{ padding: '1.2rem' }}>
-              <h3>{destination.name}</h3>
-              <p style={{ color: 'var(--color-muted)' }}>{destination.shortDescription}</p>
-              <p style={{ color: 'var(--color-medium)', fontSize: '0.9rem', marginTop: '0.7rem' }}>
-                Popular for: {destination.popularity}
-              </p>
-              <Link to={`/destinations/${destination.id}`} className="btn-secondary" style={{ display: 'inline-block', marginTop: '1rem' }}>
-                Read about this place
-              </Link>
-            </div>
-          </article>
-        ))}
+      <div className="page-shell">
+        <div className="page-shell-header">
+          <h2>Destinations</h2>
+          <p>Explore Sri Lankan attractions and click any destination to read more.</p>
+        </div>
+        <div className="grid-3">
+          {destinations.map((destination) => (
+            <article key={destination.name} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <img src={destination.imageUrl} alt={destination.name} style={{ width: '100%', height: '210px', objectFit: 'cover' }} />
+              <div style={{ padding: '1.2rem' }}>
+                <h3>{destination.name}</h3>
+                <p style={{ color: 'var(--color-muted)' }}>{destination.shortDescription}</p>
+                <p style={{ color: 'var(--color-medium)', fontSize: '0.9rem', marginTop: '0.7rem' }}>
+                  Popular for: {destination.popularity}
+                </p>
+                <Link to={`/destinations/${destination.id}`} className="btn-secondary" style={{ display: 'inline-block', marginTop: '1rem' }}>
+                  Read about this place
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
 
       {isSuperAdmin ? (
