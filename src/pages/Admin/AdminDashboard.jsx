@@ -45,6 +45,9 @@ const AdminDashboard = () => {
     adminInvites,
     driverRequests,
     contentRequests,
+    adminUsers,
+    driverUsers,
+    accessChangeLogs,
     addAnnouncement,
     updateAnnouncement,
     deleteAnnouncement,
@@ -58,9 +61,10 @@ const AdminDashboard = () => {
     approveDriverRequest,
     rejectDriverRequest,
     approveContentRequest,
-    rejectContentRequest
+    rejectContentRequest,
+    setAdminSuperAccess
   } = useAppData();
-  const { userData } = useAuth();
+  const { userData, currentUser } = useAuth();
   const [announcementForm, setAnnouncementForm] = useState(initialAnnouncement);
   const [blogForm, setBlogForm] = useState(initialBlog);
   const [destinationForm, setDestinationForm] = useState(initialDestination);
@@ -377,6 +381,135 @@ const AdminDashboard = () => {
             </p>
           </section>
         )}
+
+        {isSuperAdmin ? (
+          <section className="card">
+            <h3>Platform Users</h3>
+            <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
+              Separate visibility for admin and driver accounts with super access control.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+              <article style={{ border: '1px solid var(--color-card-border)', borderRadius: 'var(--border-radius-md)', padding: '1rem' }}>
+                <h4 style={{ marginBottom: '0.75rem' }}>Admins ({adminUsers.length})</h4>
+                {adminUsers.length === 0 ? (
+                  <p style={{ color: 'var(--color-muted)' }}>No admin accounts found.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '0.65rem' }}>
+                    {adminUsers.map((admin) => {
+                      const normalizedRole = String(admin.role || '').toLowerCase();
+                      const isTargetSuperAdmin = normalizedRole === 'super_admin';
+                      const isCurrentUser = admin.id === currentUser?.uid;
+                      return (
+                        <div
+                          key={admin.id}
+                          style={{
+                            border: '1px solid var(--color-very-light)',
+                            borderRadius: 'var(--border-radius-md)',
+                            padding: '0.65rem 0.75rem',
+                            backgroundColor: 'var(--color-cream)'
+                          }}
+                        >
+                          <strong>{admin.name || admin.email || 'Admin account'}</strong>
+                          <p style={{ margin: '0.25rem 0', color: 'var(--color-muted)', fontSize: '0.85rem' }}>
+                            {admin.email || 'No email'}
+                          </p>
+                          <p style={{ margin: '0.2rem 0', fontSize: '0.82rem' }}>
+                            Access: <strong>{isTargetSuperAdmin ? 'Super Admin' : 'Admin'}</strong>
+                          </p>
+                          {!isCurrentUser ? (
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              style={{ padding: '0.35rem 0.8rem', marginTop: '0.4rem', fontSize: '0.8rem' }}
+                              onClick={async () => {
+                                try {
+                                  await setAdminSuperAccess(admin.id, !isTargetSuperAdmin);
+                                  setFeedback(
+                                    isTargetSuperAdmin
+                                      ? `${admin.email || admin.name} reverted to admin access.`
+                                      : `${admin.email || admin.name} granted super admin access.`
+                                  );
+                                  setErrorFeedback('');
+                                } catch (error) {
+                                  setErrorFeedback(error.message || 'Failed to update admin access.');
+                                }
+                              }}
+                            >
+                              {isTargetSuperAdmin ? 'Revoke Super Access' : 'Grant Super Access'}
+                            </button>
+                          ) : (
+                            <p style={{ color: 'var(--color-muted)', fontSize: '0.8rem', marginTop: '0.35rem' }}>
+                              Current account
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </article>
+
+              <article style={{ border: '1px solid var(--color-card-border)', borderRadius: 'var(--border-radius-md)', padding: '1rem' }}>
+                <h4 style={{ marginBottom: '0.75rem' }}>Drivers ({driverUsers.length})</h4>
+                {driverUsers.length === 0 ? (
+                  <p style={{ color: 'var(--color-muted)' }}>No driver accounts found.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '0.65rem' }}>
+                    {driverUsers.map((driver) => (
+                      <div
+                        key={driver.id}
+                        style={{
+                          border: '1px solid var(--color-very-light)',
+                          borderRadius: 'var(--border-radius-md)',
+                          padding: '0.65rem 0.75rem',
+                          backgroundColor: 'var(--color-cream)'
+                        }}
+                      >
+                        <strong>{driver.name || driver.email || 'Driver account'}</strong>
+                        <p style={{ margin: '0.25rem 0', color: 'var(--color-muted)', fontSize: '0.85rem' }}>
+                          {driver.email || 'No email'}
+                        </p>
+                        <p style={{ margin: 0, color: 'var(--color-medium)', fontSize: '0.8rem' }}>
+                          Vehicle: {driver.vehicleType || driver.vehicleCategory || 'N/A'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </article>
+            </div>
+
+            <div style={{ marginTop: '1rem', border: '1px solid var(--color-card-border)', borderRadius: 'var(--border-radius-md)', padding: '1rem' }}>
+              <h4 style={{ marginBottom: '0.75rem' }}>Access Change Audit Log</h4>
+              {accessChangeLogs.length === 0 ? (
+                <p style={{ color: 'var(--color-muted)' }}>No access change records yet.</p>
+              ) : (
+                <div style={{ display: 'grid', gap: '0.55rem' }}>
+                  {accessChangeLogs.slice(0, 12).map((log) => (
+                    <div
+                      key={log.id}
+                      style={{
+                        border: '1px solid var(--color-very-light)',
+                        borderRadius: 'var(--border-radius-md)',
+                        backgroundColor: 'var(--color-cream)',
+                        padding: '0.6rem 0.75rem'
+                      }}
+                    >
+                      <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                        <strong>{log.targetUserEmail || log.targetUserName || 'Unknown admin'}</strong>:
+                        {' '}
+                        {log.previousRole || 'admin'} {'->'} {log.nextRole || 'admin'}
+                      </p>
+                      <p style={{ margin: '0.2rem 0 0', color: 'var(--color-muted)', fontSize: '0.8rem' }}>
+                        Changed by {log.changedByEmail || 'Unknown'}.
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        ) : null}
 
         {isSuperAdmin ? (
           <section className="card">

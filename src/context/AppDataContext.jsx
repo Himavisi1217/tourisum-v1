@@ -71,6 +71,9 @@ export function AppDataProvider({ children }) {
   const [adminInvites, setAdminInvites] = useState([]);
   const [driverRequests, setDriverRequests] = useState([]);
   const [contentRequests, setContentRequests] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [driverUsers, setDriverUsers] = useState([]);
+  const [accessChangeLogs, setAccessChangeLogs] = useState([]);
 
   useEffect(() => {
     const announcementsQuery = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
@@ -240,6 +243,62 @@ export function AppDataProvider({ children }) {
       },
       () => {
         setContentRequests([]);
+      }
+    );
+
+    return unsubscribe;
+  }, [userData?.role]);
+
+  useEffect(() => {
+    if (!userData || !['admin', 'super_admin'].includes(userData.role)) {
+      setAdminUsers([]);
+      setDriverUsers([]);
+      return undefined;
+    }
+
+    const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(
+      usersQuery,
+      (snapshot) => {
+        if (snapshot.empty) {
+          setAdminUsers([]);
+          setDriverUsers([]);
+          return;
+        }
+
+        const allUsers = snapshot.docs.map((document) => ({ id: document.id, ...document.data() }));
+        setAdminUsers(
+          allUsers.filter((item) => ['admin', 'super_admin'].includes(String(item.role || '').toLowerCase()))
+        );
+        setDriverUsers(allUsers.filter((item) => String(item.role || '').toLowerCase() === 'driver'));
+      },
+      () => {
+        setAdminUsers([]);
+        setDriverUsers([]);
+      }
+    );
+
+    return unsubscribe;
+  }, [userData?.role]);
+
+  useEffect(() => {
+    if (userData?.role !== 'super_admin') {
+      setAccessChangeLogs([]);
+      return undefined;
+    }
+
+    const logsQuery = query(collection(db, 'accessChangeLogs'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(
+      logsQuery,
+      (snapshot) => {
+        if (snapshot.empty) {
+          setAccessChangeLogs([]);
+          return;
+        }
+        setAccessChangeLogs(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
+      },
+      () => {
+        setAccessChangeLogs([]);
       }
     );
 
@@ -513,6 +572,52 @@ export function AppDataProvider({ children }) {
     return { valid: true, invite };
   };
 
+  const setAdminSuperAccess = async (adminUserId, grantAccess) => {
+    if (!currentUser || userData?.role !== 'super_admin') {
+      throw new Error('Only super admins can change admin access levels.');
+    }
+
+    const targetRef = doc(db, 'users', adminUserId);
+    const targetSnap = await getDoc(targetRef);
+    if (!targetSnap.exists()) {
+      throw new Error('Selected admin account does not exist.');
+    }
+
+    const targetData = targetSnap.data();
+    const currentRole = String(targetData.role || '').toLowerCase();
+    if (!['admin', 'super_admin'].includes(currentRole)) {
+      throw new Error('Only admin users can be updated.');
+    }
+
+    await updateDoc(targetRef, {
+      role: grantAccess ? 'super_admin' : 'admin',
+      superAccessGrantedBy: grantAccess ? currentUser.uid : null,
+      superAccessGrantedAt: grantAccess ? serverTimestamp() : null,
+      updatedAt: serverTimestamp()
+    });
+
+    await setDoc(doc(collection(db, 'accessChangeLogs')), {
+      targetUserId: adminUserId,
+      targetUserEmail: targetData.email || '',
+      targetUserName: targetData.name || '',
+      previousRole: currentRole,
+      nextRole: grantAccess ? 'super_admin' : 'admin',
+      changedByUid: currentUser.uid,
+      changedByEmail: userData?.email || currentUser.email || '',
+      createdAt: serverTimestamp()
+    });
+  };
+
+  const updateCurrentUserProfile = async (payload) => {
+    if (!currentUser) {
+      throw new Error('You must be logged in.');
+    }
+    await updateDoc(doc(db, 'users', currentUser.uid), {
+      ...payload,
+      updatedAt: serverTimestamp()
+    });
+  };
+
   const value = useMemo(
     () => ({
       announcements,
@@ -522,6 +627,9 @@ export function AppDataProvider({ children }) {
       adminInvites,
       driverRequests,
       contentRequests,
+      adminUsers,
+      driverUsers,
+      accessChangeLogs,
       addAnnouncement,
       updateAnnouncement,
       deleteAnnouncement,
@@ -539,9 +647,11 @@ export function AppDataProvider({ children }) {
       rejectDriverRequest,
       submitContentRequest,
       approveContentRequest,
-      rejectContentRequest
+      rejectContentRequest,
+      setAdminSuperAccess,
+      updateCurrentUserProfile
     }),
-    [announcements, blogs, destinations, driverTrips, adminInvites, driverRequests, contentRequests]
+    [announcements, blogs, destinations, driverTrips, adminInvites, driverRequests, contentRequests, adminUsers, driverUsers, accessChangeLogs]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

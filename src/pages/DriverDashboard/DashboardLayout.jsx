@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   CalendarRange,
@@ -10,8 +10,11 @@ import {
   LogOut
 } from 'lucide-react';
 import './Dashboard.css';
+import { useAuth } from '../../context/AuthContext';
 
 const DashboardLayout = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const getLinkClass = ({ isActive }) =>
     `sidebar-link${isActive ? ' active' : ''}`;
 
@@ -21,6 +24,11 @@ const DashboardLayout = () => {
     { to: '/driver-dashboard/history', label: 'Trip History', icon: Clock3 },
     { to: '/driver-dashboard/calendar', label: 'Calendar', icon: CalendarRange }
   ];
+
+  const handleDriverLogout = async () => {
+    await logout();
+    navigate('/', { replace: true });
+  };
 
   return (
     <div className="dashboard-layout">
@@ -41,15 +49,15 @@ const DashboardLayout = () => {
           </nav>
 
           <div className="sidebar-bottom">
-            <button type="button" className="sidebar-link muted">
+            <NavLink to="/driver-dashboard/notifications" className={getLinkClass}>
               <Bell size={16} />
               <span>Notifications</span>
-            </button>
-            <button type="button" className="sidebar-link muted">
+            </NavLink>
+            <NavLink to="/driver-dashboard/settings" className={getLinkClass}>
               <Settings size={16} />
               <span>Settings</span>
-            </button>
-            <button type="button" className="sidebar-link muted">
+            </NavLink>
+            <button type="button" className="sidebar-link muted clickable" onClick={handleDriverLogout}>
               <LogOut size={16} />
               <span>Log Out</span>
             </button>

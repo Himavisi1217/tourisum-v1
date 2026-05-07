@@ -91,6 +91,10 @@
   cursor: default;
 }
 
+.sidebar-link.muted.clickable {
+  cursor: pointer;
+}
+
 .dashboard-content {
   flex: 1;
   padding: 1rem 1.1rem;

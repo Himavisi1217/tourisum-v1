@@ -12,7 +12,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdminUser = userData?.role === 'admin' || userData?.role === 'super_admin';
-  const canViewAnnouncements = isAdminUser;
   const isAdminArea =
     location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal-admin');
 
@@ -29,7 +28,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate('/', { replace: true });
     } catch (error) {
       console.error("Failed to log out", error);
     }
@@ -131,14 +130,6 @@ const Navbar = () => {
               Blogs
             </Link>
           </li>
-          {canViewAnnouncements ? (
-            <li className="nav-item">
-              <Link to="/announcements" className="nav-links" onClick={closeMenus}>
-                Announcements
-              </Link>
-            </li>
-          ) : null}
-          
           {currentUser ? (
             <>
               {userData?.role === 'driver' && (
